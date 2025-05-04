@@ -139,7 +139,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"💰 Монеты: {user_data[0]}\n"
             f"💪 Сила клика: {user_data[1]}\n"
             f"🎚 Улучшений: {user_data[2]}",
-            reply_markup=InlineKeyboardMarkup(keyboard)
+            reply_markup=InlineKeyboardMarkup(keyboard))
     except Exception as e:
         logger.error(f"Ошибка в команде /start: {e}")
         await update.message.reply_text("⚠️ Произошла ошибка. Попробуйте позже.")
