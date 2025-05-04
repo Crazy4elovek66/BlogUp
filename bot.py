@@ -3,8 +3,8 @@ import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 import psycopg2
-from psycopg2 import sql
-from contextlib import closing
+from psycopg2 import pool
+from contextlib import contextmanager
 
 # Настройка логгирования
 logging.basicConfig(
@@ -13,30 +13,56 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Конфигурация базы данных
-def get_db_connection():
-    return psycopg2.connect(os.getenv("DATABASE_URL"), sslmode="require")
+# Пул соединений PostgreSQL
+connection_pool = None
 
 def init_db():
-    with closing(get_db_connection()) as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS users (
-                    user_id BIGINT PRIMARY KEY,
-                    coins INTEGER DEFAULT 0,
-                    click_power INTEGER DEFAULT 1,
-                    last_click TIMESTAMP DEFAULT NOW()
-                )
-            """)
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS upgrades (
-                    user_id BIGINT REFERENCES users(user_id),
-                    upgrade_type VARCHAR(50) NOT NULL,
-                    level INTEGER DEFAULT 1,
-                    PRIMARY KEY (user_id, upgrade_type)
-                )
-            """)
-        conn.commit()
+    global connection_pool
+    try:
+        connection_pool = psycopg2.pool.SimpleConnectionPool(
+            minconn=1,
+            maxconn=5,
+            dsn=os.getenv("DATABASE_URL"),
+            sslmode="require"
+        )
+        logger.info("Инициализирован пул соединений с PostgreSQL")
+        
+        # Проверка соединения и создание таблиц
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS users (
+                        user_id BIGINT PRIMARY KEY,
+                        coins INTEGER DEFAULT 0,
+                        click_power INTEGER DEFAULT 1,
+                        last_click TIMESTAMP DEFAULT NOW()
+                    )
+                """)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS upgrades (
+                        user_id BIGINT REFERENCES users(user_id),
+                        upgrade_type VARCHAR(50) NOT NULL,
+                        level INTEGER DEFAULT 1,
+                        PRIMARY KEY (user_id, upgrade_type)
+                    )
+                """)
+                conn.commit()
+    except Exception as e:
+        logger.error(f"Ошибка инициализации БД: {e}")
+        raise
+
+@contextmanager
+def get_db_connection():
+    conn = None
+    try:
+        conn = connection_pool.getconn()
+        yield conn
+    except Exception as e:
+        logger.error(f"Ошибка подключения к БД: {e}")
+        raise
+    finally:
+        if conn:
+            connection_pool.putconn(conn)
 
 def get_user(user_id):
     with closing(get_db_connection()) as conn:
@@ -166,6 +192,13 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Запуск бота
 def main():
+    # Проверка обязательных переменных
+    required_vars = ['TELEGRAM_TOKEN', 'DATABASE_URL']
+    missing_vars = [var for var in required_vars if not os.getenv(var)]
+    if missing_vars:
+        logger.error(f"Отсутствуют переменные окружения: {', '.join(missing_vars)}")
+        raise ValueError("Не заданы обязательные переменные окружения")
+    
     init_db()
     
     app = Application.builder() \
