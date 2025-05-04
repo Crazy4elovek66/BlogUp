@@ -182,6 +182,10 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     keyboard.append([InlineKeyboardButton(
                         f"{name} (Купить)", 
                         callback_data=f"buy_{upgrade_type}_{cost}")])
+                else:
+                    keyboard.append([InlineKeyboardButton(
+                        f"{name} (Недостаточно монет)", 
+                        callback_data="no_money")])
             
             keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data="back")])
             
@@ -192,19 +196,47 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif query.data.startswith("buy_"):
             _, upgrade_type, cost = query.data.split("_")
             cost = int(cost)
+            user_data = get_user(user_id)
             
-            if user_data[0] >= cost:
-                new_coins = user_data[0] - cost
-                update_user(user_id, new_coins)
-                
-                if upgrade_type == "click_power":
-                    new_power = user_data[1] + 1
-                    update_user(user_id, None, new_power)
-                else:
-                    add_upgrade(user_id, upgrade_type)
-                
-                await query.answer("Улучшение куплено!")
-                await start(update, context)
+            if user_data and user_data[0] >= cost:
+                try:
+                    # Обновляем баланс
+                    new_coins = user_data[0] - cost
+                    update_user(user_id, new_coins)
+                    
+                    # Применяем улучшение
+                    if upgrade_type == "click_power":
+                        new_power = user_data[1] + 1
+                        update_user(user_id, None, new_power)
+                    else:
+                        add_upgrade(user_id, upgrade_type)
+                    
+                    # Получаем обновленные данные
+                    updated_data = get_user(user_id)
+                    if not updated_data:
+                        raise Exception("Не удалось получить обновленные данные")
+                    
+                    # Формируем сообщение
+                    message = (
+                        f"✅ Улучшение куплено!\n\n"
+                        f"💰 Монеты: {updated_data[0]}\n"
+                        f"💪 Сила клика: {updated_data[1]}\n"
+                        f"🎚 Улучшений: {updated_data[2]}"
+                    )
+                    
+                    keyboard = [
+                        [InlineKeyboardButton("🔨 Кликнуть", callback_data="click")],
+                        [InlineKeyboardButton("🛒 Улучшения", callback_data="upgrades")]
+                    ]
+                    
+                    await query.edit_message_text(
+                        message,
+                        reply_markup=InlineKeyboardMarkup(keyboard))
+                    
+                except Exception as e:
+                    logger.error(f"Ошибка при покупке улучшения: {e}")
+                    await query.edit_message_text(
+                        "⚠️ Ошибка при обработке покупки. Попробуйте позже.")
             else:
                 await query.answer("Недостаточно монет!")
         
@@ -213,8 +245,10 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
     except Exception as e:
         logger.error(f"Ошибка обработки callback: {e}")
-        await query.edit_message_text("⚠️ Произошла ошибка. Попробуйте позже.")
-
+        try:
+            await query.edit_message_text("⚠️ Произошла ошибка. Попробуйте позже.")
+        except:
+            pass
 def main():
     # Проверка обязательных переменных
     required_vars = ['TELEGRAM_TOKEN', 'DATABASE_URL']
