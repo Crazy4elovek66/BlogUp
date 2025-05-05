@@ -1,40 +1,29 @@
 import os
 import logging
-from telegram import Update, WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import Update, WebAppInfo
 from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
 import psycopg2
 from psycopg2 import pool
-import json
 from contextlib import contextmanager
+from multiprocessing import Process
+from waitress import serve
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
-app = Flask(__name__)
-CORS(app)
-
-@app.route('/api/user', methods=['GET'])
-def api_get_user():
-    user_id = request.args.get('id')
-    if not user_id:
-        return jsonify({'status': 'error', 'message': 'User ID required'}), 400
-    
-    data = get_user_data(int(user_id))
-    if data:
-        return jsonify({'status': 'success', 'data': data})
-    return jsonify({'status': 'error', 'message': 'User not found'}), 404
-
-
-# Настройка логгирования
+# Конфигурация
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
+# Инициализация Flask
+flask_app = Flask(__name__)
+CORS(flask_app)
+
 # Пул соединений PostgreSQL
 connection_pool = None
 
-# Инициализация базы данных
 def init_db():
     global connection_pool
     try:
@@ -44,21 +33,9 @@ def init_db():
             dsn=os.getenv("DATABASE_URL"),
             sslmode="require"
         )
-        logger.info("Инициализирован пул соединений с PostgreSQL")
-        
-        with get_db_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS users (
-                        user_id BIGINT PRIMARY KEY,
-                        coins INTEGER DEFAULT 0,
-                        click_power INTEGER DEFAULT 1,
-                        upgrades JSONB DEFAULT '{}'
-                    )
-                """)
-                conn.commit()
+        logger.info("PostgreSQL connection pool initialized")
     except Exception as e:
-        logger.error(f"Ошибка инициализации БД: {e}")
+        logger.error(f"DB init error: {e}")
         raise
 
 @contextmanager
@@ -68,153 +45,54 @@ def get_db_connection():
         conn = connection_pool.getconn()
         yield conn
     except Exception as e:
-        logger.error(f"Ошибка подключения к БД: {e}")
+        logger.error(f"DB connection error: {e}")
         raise
     finally:
         if conn:
             connection_pool.putconn(conn)
 
-def get_user_data(user_id):
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("""
-                    SELECT coins, click_power, upgrades 
-                    FROM users WHERE user_id = %s
-                """, (user_id,))
-                result = cursor.fetchone()
-                if result:
-                    return {
-                        'coins': result[0],
-                        'click_power': result[1],
-                        'upgrades': result[2] if result[2] else {}
-                    }
-                return None
-    except Exception as e:
-        logger.error(f"Ошибка получения данных пользователя {user_id}: {e}")
-        return None
-
-def update_user_data(user_id, coins=None, click_power=None, upgrades=None):
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cursor:
-                if all(v is not None for v in [coins, click_power, upgrades]):
-                    cursor.execute("""
-                        INSERT INTO users (user_id, coins, click_power, upgrades)
-                        VALUES (%s, %s, %s, %s)
-                        ON CONFLICT (user_id) DO UPDATE
-                        SET coins = EXCLUDED.coins, 
-                            click_power = EXCLUDED.click_power,
-                            upgrades = EXCLUDED.upgrades
-                    """, (user_id, coins, click_power, json.dumps(upgrades)))
-                elif coins is not None and click_power is not None:
-                    cursor.execute("""
-                        INSERT INTO users (user_id, coins, click_power)
-                        VALUES (%s, %s, %s)
-                        ON CONFLICT (user_id) DO UPDATE
-                        SET coins = EXCLUDED.coins, 
-                            click_power = EXCLUDED.click_power
-                    """, (user_id, coins, click_power))
-                elif coins is not None:
-                    cursor.execute("""
-                        INSERT INTO users (user_id, coins)
-                        VALUES (%s, %s)
-                        ON CONFLICT (user_id) DO UPDATE
-                        SET coins = EXCLUDED.coins
-                    """, (user_id, coins))
-                conn.commit()
-    except Exception as e:
-        logger.error(f"Ошибка обновления данных пользователя {user_id}: {e}")
-
-# Команда для запуска Web App
+# Telegram Bot Handlers
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         user_id = update.effective_user.id
-        user_data = get_user_data(user_id)
-        if not user_data:
-            # Создаем нового пользователя
-            update_user_data(user_id, 0, 1, {})
-            user_data = {'coins': 0, 'click_power': 1, 'upgrades': {}}
-        
-        # Кнопка для открытия Web App
-        keyboard = [
-            [InlineKeyboardButton(
-                "🎮 Открыть игру", 
-                web_app=WebAppInfo(url=f"https://ваш-сайт.vercel.app?user_id={user_id}"))
-            ]
-        ]
+        web_app_url = f"{os.getenv('WEB_APP_URL')}?user_id={user_id}"
         
         await update.message.reply_text(
-            "Добро пожаловать в Hamster Kombat!",
-            reply_markup=InlineKeyboardMarkup(keyboard)
+            "Welcome to the game!",
+            reply_markup=InlineKeyboardMarkup([[
+                InlineKeyboardButton(
+                    "Open Game",
+                    web_app=WebAppInfo(url=web_app_url)
+                )
+            ]])
         )
     except Exception as e:
-        logger.error(f"Ошибка в команде /start: {e}")
-        await update.message.reply_text("⚠️ Произошла ошибка. Попробуйте позже.")
-        
-def debug_db():
-    """Функция для проверки данных в БД"""
-    with get_db_connection() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT * FROM users")
-            print("Данные в БД:")
-            for row in cursor.fetchall():
-                print(row)
+        logger.error(f"Start error: {e}")
 
-# Обработка данных из Web App
-async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# Flask API
+@flask_app.route('/api/user', methods=['GET'])
+def api_get_user():
     try:
-        user_id = update.effective_user.id
-        data = json.loads(update.message.web_app_data.data)
-        
-        # Сохраняем данные от фронтенда
-        update_user_data(
-            user_id,
-            coins=data.get('coins'),
-            click_power=data.get('click_power'),
-            upgrades=data.get('upgrades', {})
-        )
-        
-        await update.message.reply_text("✅ Прогресс сохранён!")
+        user_id = request.args.get('id')
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT coins, click_power FROM users WHERE user_id = %s", (user_id,))
+                result = cursor.fetchone()
+                return jsonify({
+                    'coins': result[0] if result else 0,
+                    'click_power': result[1] if result else 1
+                })
     except Exception as e:
-        logger.error(f"Ошибка обработки данных Web App: {e}")
-        await update.message.reply_text("⚠️ Ошибка сохранения прогресса")
+        logger.error(f"API error: {e}")
+        return jsonify({'error': str(e)}), 500
 
-# API для фронтенда (получение данных пользователя)
-async def get_user_data_api(user_id: int):
-    try:
-        data = get_user_data(user_id)
-        if data:
-            return {
-                'status': 'success',
-                'data': {
-                    'coins': data['coins'],
-                    'click_power': data['click_power'],
-                    'upgrades': data['upgrades']
-                }
-            }
-        return {'status': 'error', 'message': 'User not found'}
-    except Exception as e:
-        logger.error(f"API Error for user {user_id}: {e}")
-        return {'status': 'error', 'message': str(e)}
+def run_flask():
+    port = int(os.getenv("PORT", 5000))
+    serve(flask_app, host='0.0.0.0', port=port)
 
-def main():
-    # Проверка переменных окружения
-    required_vars = ['TELEGRAM_TOKEN', 'DATABASE_URL', 'WEB_APP_URL']
-    missing_vars = [var for var in required_vars if not os.getenv(var)]
-    if missing_vars:
-        logger.error(f"Отсутствуют переменные: {', '.join(missing_vars)}")
-        raise ValueError("Не заданы обязательные переменные окружения")
-    
-    init_db()
-    
+def run_bot():
     app = Application.builder().token(os.getenv("TELEGRAM_TOKEN")).build()
-    
-    # Обработчики команд
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
-    
-    # Запуск бота
     app.run_polling(
         drop_pending_updates=True,
         close_loop=False,
@@ -223,9 +101,13 @@ def main():
 
 if __name__ == "__main__":
     init_db()
-    # Запуск Flask в отдельном потоке
-    from threading import Thread
-    Thread(target=lambda: app.run(port=5000)).start()
     
-    # Запуск Telegram бота
-    main()
+    # Запуск в отдельных процессах
+    flask_process = Process(target=run_flask)
+    bot_process = Process(target=run_bot)
+    
+    flask_process.start()
+    bot_process.start()
+    
+    flask_process.join()
+    bot_process.join()
