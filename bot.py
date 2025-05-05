@@ -6,6 +6,23 @@ import psycopg2
 from psycopg2 import pool
 import json
 from contextlib import contextmanager
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app)
+
+@app.route('/api/user', methods=['GET'])
+def api_get_user():
+    user_id = request.args.get('id')
+    if not user_id:
+        return jsonify({'status': 'error', 'message': 'User ID required'}), 400
+    
+    data = get_user_data(int(user_id))
+    if data:
+        return jsonify({'status': 'success', 'data': data})
+    return jsonify({'status': 'error', 'message': 'User not found'}), 404
+
 
 # Настройка логгирования
 logging.basicConfig(
@@ -205,4 +222,10 @@ def main():
     )
 
 if __name__ == "__main__":
+    init_db()
+    # Запуск Flask в отдельном потоке
+    from threading import Thread
+    Thread(target=lambda: app.run(port=5000)).start()
+    
+    # Запуск Telegram бота
     main()
