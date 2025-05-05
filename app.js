@@ -1,25 +1,46 @@
-// Инициализация Telegram WebApp
+// Инициализация
 const tg = window.Telegram.WebApp;
-tg.expand();  // Раскрыть на весь экран
+tg.expand();
+const userId = new URLSearchParams(window.location.search).get('user_id');
 
-let coins = 0;
-let clickPower = 1;
+// Состояние игры
+let gameState = {
+    coins: 0,
+    clickPower: 1,
+    upgrades: {}
+};
 
-document.getElementById('click-btn').addEventListener('click', () => {
-    coins += clickPower;
-    updateUI();
-    // Отправляем данные на сервер
-    tg.sendData(JSON.stringify({ type: "click", coins, power: clickPower }));
-});
-
-function updateUI() {
-    document.getElementById('coins').textContent = `💰 Монеты: ${coins}`;
+// Загрузка данных
+async function loadGame() {
+    try {
+        const response = await fetch(`https://your-backend-url.railway.app/api/user?id=${userId}`);
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            gameState = {
+                coins: data.data.coins,
+                clickPower: data.data.click_power,
+                upgrades: data.data.upgrades || {}
+            };
+            updateUI();
+        }
+    } catch (e) {
+        console.error("Ошибка загрузки:", e);
+    }
 }
 
-// Получение данных от бота
-tg.onEvent('web_app_data', (data) => {
-    const parsed = JSON.parse(data);
-    coins = parsed.coins || coins;
-    clickPower = parsed.power || clickPower;
-    updateUI();
-});
+// Сохранение данных
+function saveGame() {
+    tg.sendData(JSON.stringify({
+        user_id: parseInt(userId),
+        coins: gameState.coins,
+        click_power: gameState.clickPower,
+        upgrades: gameState.upgrades
+    }));
+}
+
+// Автосохранение каждые 30 сек
+setInterval(saveGame, 30000);
+
+// Инициализация
+loadGame();
