@@ -18,7 +18,7 @@ connection_pool = None
 
 async def post_init(application: Application) -> None:
     """Функция инициализации после запуска бота"""
-    logger.info("Бот успешно инициализирован")
+    logger.info("Бот успешно инициализирован (один экземпляр)")
 
 def init_db():
     global connection_pool
@@ -31,7 +31,6 @@ def init_db():
         )
         logger.info("Инициализирован пул соединений с PostgreSQL")
         
-        # Проверка соединения и создание таблиц
         with get_db_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("""
@@ -73,9 +72,9 @@ def get_user(user_id):
         with get_db_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("""
-                    SELECT u.coins, u.click_power, 
+                    SELECT coins, click_power, 
                     (SELECT COUNT(*) FROM upgrades WHERE user_id = %s) as upgrades_count
-                    FROM users u WHERE u.user_id = %s
+                    FROM users WHERE user_id = %s
                 """, (user_id, user_id))
                 return cursor.fetchone()
     except Exception as e:
@@ -172,15 +171,15 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         elif query.data == "upgrades":
             upgrades = [
-                ("💪 +1 к силе (10 монет)", "click_power", 10),
-                ("⚡ Автокликер (50 монет)", "autoclicker", 50)
+                ("💪 +1 к силе", "click_power", 10),
+                ("⚡ Автокликер", "autoclicker", 50)
             ]
             
             keyboard = []
             for name, upgrade_type, cost in upgrades:
                 if user_data[0] >= cost:
                     keyboard.append([InlineKeyboardButton(
-                        f"{name} (Купить)", 
+                        f"{name} ({cost} монет)", 
                         callback_data=f"buy_{upgrade_type}_{cost}")])
                 else:
                     keyboard.append([InlineKeyboardButton(
@@ -194,12 +193,16 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_markup=InlineKeyboardMarkup(keyboard))
         
         elif query.data.startswith("buy_"):
-            _, upgrade_type, cost = query.data.split("_")
-            cost = int(cost)
-            user_data = get_user(user_id)
-            
-            if user_data and user_data[0] >= cost:
-                try:
+            try:
+                # Безопасное разделение данных callback
+                parts = query.data.split("_")
+                if len(parts) != 3:
+                    raise ValueError("Некорректный формат callback данных")
+                
+                upgrade_type = parts[1]
+                cost = int(parts[2])
+                
+                if user_data[0] >= cost:
                     # Обновляем баланс
                     new_coins = user_data[0] - cost
                     update_user(user_id, new_coins)
@@ -218,7 +221,7 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     
                     # Формируем сообщение
                     message = (
-                        f"✅ Улучшение куплено!\n\n"
+                        f"✅ Улучшение '{upgrade_type}' куплено за {cost} монет!\n\n"
                         f"💰 Монеты: {updated_data[0]}\n"
                         f"💪 Сила клика: {updated_data[1]}\n"
                         f"🎚 Улучшений: {updated_data[2]}"
@@ -232,16 +235,21 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     await query.edit_message_text(
                         message,
                         reply_markup=InlineKeyboardMarkup(keyboard))
+                else:
+                    await query.answer("Недостаточно монет!")
                     
-                except Exception as e:
-                    logger.error(f"Ошибка при покупке улучшения: {e}")
-                    await query.edit_message_text(
-                        "⚠️ Ошибка при обработке покупки. Попробуйте позже.")
-            else:
-                await query.answer("Недостаточно монет!")
+            except ValueError as e:
+                logger.error(f"Ошибка формата callback: {e}, data: {query.data}")
+                await query.answer("Ошибка обработки запроса")
+            except Exception as e:
+                logger.error(f"Ошибка при покупке улучшения: {e}")
+                await query.edit_message_text(
+                    "⚠️ Ошибка при обработке покупки. Попробуйте позже.")
         
         elif query.data == "back":
             await start(update, context)
+        elif query.data == "no_money":
+            await query.answer("Недостаточно монет для покупки!")
             
     except Exception as e:
         logger.error(f"Ошибка обработки callback: {e}")
@@ -249,12 +257,13 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text("⚠️ Произошла ошибка. Попробуйте позже.")
         except:
             pass
+
 def main():
-    # Проверка обязательных переменных
+    # Проверка переменных окружения
     required_vars = ['TELEGRAM_TOKEN', 'DATABASE_URL']
     missing_vars = [var for var in required_vars if not os.getenv(var)]
     if missing_vars:
-        logger.error(f"Отсутствуют переменные окружения: {', '.join(missing_vars)}")
+        logger.error(f"Отсутствуют переменные: {', '.join(missing_vars)}")
         raise ValueError("Не заданы обязательные переменные окружения")
     
     init_db()
@@ -267,9 +276,11 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(button_click))
     
+    # Убедимся, что работает только один экземпляр бота
     app.run_polling(
         drop_pending_updates=True,
         close_loop=False,
+        allowed_updates=Update.ALL_TYPES,
         stop_signals=None
     )
 
