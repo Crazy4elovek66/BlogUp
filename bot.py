@@ -79,7 +79,7 @@ def get_user(user_id):
                 return cursor.fetchone()
     except Exception as e:
         logger.error(f"Ошибка получения пользователя {user_id}: {e}")
-        return None
+        return (0, 1, 0)  # Возвращаем значения по умолчанию
 
 def update_user(user_id, coins=None, click_power=None):
     try:
@@ -122,12 +122,12 @@ def add_upgrade(user_id, upgrade_type):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        user_id = update.effective_user.id
+        if not update.message:
+            logger.error("Update не содержит message")
+            return
+            
+        user_id = update.message.from_user.id
         user_data = get_user(user_id)
-        
-        if not user_data:
-            update_user(user_id, 0, 1)
-            user_data = (0, 1, 0)
         
         keyboard = [
             [InlineKeyboardButton("🔨 Кликнуть", callback_data="click")],
@@ -141,19 +141,21 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=InlineKeyboardMarkup(keyboard))
     except Exception as e:
         logger.error(f"Ошибка в команде /start: {e}")
-        await update.message.reply_text("⚠️ Произошла ошибка. Попробуйте позже.")
+        if update.message:
+            await update.message.reply_text("⚠️ Произошла ошибка. Попробуйте позже.")
 
 async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         query = update.callback_query
         await query.answer()
+        
+        if not query.data:
+            logger.error("CallbackQuery не содержит data")
+            return
+            
         user_id = query.from_user.id
         user_data = get_user(user_id)
         
-        if not user_data:
-            await query.edit_message_text("⚠️ Ваши данные не найдены. Напишите /start")
-            return
-            
         if query.data == "click":
             new_coins = user_data[0] + user_data[1]
             update_user(user_id, new_coins)
@@ -180,7 +182,7 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 if user_data[0] >= cost:
                     keyboard.append([InlineKeyboardButton(
                         f"{name} ({cost} монет)", 
-                        callback_data=f"buy_{upgrade_type}_{cost}")])
+                        callback_data=f"buy:{upgrade_type}:{cost}")])
                 else:
                     keyboard.append([InlineKeyboardButton(
                         f"{name} (Недостаточно монет)", 
@@ -192,34 +194,23 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "🛒 Магазин улучшений:",
                 reply_markup=InlineKeyboardMarkup(keyboard))
         
-        elif query.data.startswith("buy_"):
+        elif query.data.startswith("buy:"):
             try:
-                # Безопасное разделение данных callback
-                parts = query.data.split("_")
-                if len(parts) != 3:
-                    raise ValueError("Некорректный формат callback данных")
-                
-                upgrade_type = parts[1]
-                cost = int(parts[2])
+                _, upgrade_type, cost_str = query.data.split(":")
+                cost = int(cost_str)
                 
                 if user_data[0] >= cost:
-                    # Обновляем баланс
                     new_coins = user_data[0] - cost
                     update_user(user_id, new_coins)
                     
-                    # Применяем улучшение
                     if upgrade_type == "click_power":
                         new_power = user_data[1] + 1
                         update_user(user_id, None, new_power)
                     else:
                         add_upgrade(user_id, upgrade_type)
                     
-                    # Получаем обновленные данные
                     updated_data = get_user(user_id)
-                    if not updated_data:
-                        raise Exception("Не удалось получить обновленные данные")
                     
-                    # Формируем сообщение
                     message = (
                         f"✅ Улучшение '{upgrade_type}' куплено за {cost} монет!\n\n"
                         f"💰 Монеты: {updated_data[0]}\n"
@@ -276,11 +267,9 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(button_click))
     
-    # Убедимся, что работает только один экземпляр бота
     app.run_polling(
         drop_pending_updates=True,
         close_loop=False,
-        allowed_updates=Update.ALL_TYPES,
         stop_signals=None
     )
 
