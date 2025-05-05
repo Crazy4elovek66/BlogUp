@@ -113,11 +113,11 @@ def update_user_data(user_id, coins=None, click_power=None, upgrades=None):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         user_id = update.effective_user.id
-        user_data = get_user_data(user_id) or {
-            'coins': 0,
-            'click_power': 1,
-            'upgrades': {}
-        }
+        user_data = get_user_data(user_id)
+        if not user_data:
+            # Создаем нового пользователя
+            update_user_data(user_id, 0, 1, {})
+            user_data = {'coins': 0, 'click_power': 1, 'upgrades': {}}
         
         # Кнопка для открытия Web App
         keyboard = [
@@ -134,6 +134,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Ошибка в команде /start: {e}")
         await update.message.reply_text("⚠️ Произошла ошибка. Попробуйте позже.")
+        
+def debug_db():
+    """Функция для проверки данных в БД"""
+    with get_db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM users")
+            print("Данные в БД:")
+            for row in cursor.fetchall():
+                print(row)
 
 # Обработка данных из Web App
 async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
