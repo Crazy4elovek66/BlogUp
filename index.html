@@ -1,8 +1,7 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BlogUp Clicker</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -11,120 +10,56 @@
             text-align: center;
             background-color: #f5f5f5;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
-            height: 100vh;
-            box-sizing: border-box;
         }
-        
-        .container {
-            background-color: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 100%;
-        }
-        
-        #views-counter {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-        
         #click-area {
             width: 200px;
             height: 200px;
+            margin: 20px auto;
             background-color: #4CAF50;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto;
             cursor: pointer;
             user-select: none;
-            transition: transform 0.1s;
             color: white;
-            font-size: 20px;
             font-weight: bold;
+            font-size: 20px;
+            transition: transform 0.1s;
         }
-        
         #click-area:active {
             transform: scale(0.95);
         }
-        
-        .stats {
-            margin-top: 20px;
-            text-align: left;
+        #counter {
+            font-size: 24px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>BlogUp Clicker</h1>
-        <div id="views-counter">0 просмотров</div>
-        
-        <div id="click-area">КЛИКАЙ!</div>
-        
-        <div class="stats">
-            <p>Сила клика: <span id="click-power">1</span></p>
-        </div>
-    </div>
+    <div id="counter">0 кликов</div>
+    <div id="click-area">КЛИКАЙ</div>
 
     <script>
-        // Инициализация Telegram WebApp
         const tg = window.Telegram.WebApp;
         tg.expand();
         
-        // Получаем user_id из Telegram
-        const user_id = tg.initDataUnsafe.user?.id;
-        if (!user_id) {
-            tg.showAlert('Не удалось определить пользователя');
-            throw new Error('User ID not found');
-        }
-        
-        // Элементы интерфейса
+        const user_id = tg.initDataUnsafe.user.id;
         const clickArea = document.getElementById('click-area');
-        const viewsCounter = document.getElementById('views-counter');
-        const clickPowerEl = document.getElementById('click-power');
+        const counter = document.getElementById('counter');
         
-        // Состояние игры
-        let views = 0;
-        let clickPower = 1;
-        
-        // Загрузка статистики
-        async function loadStats() {
-            try {
-                const response = await fetch('/stats', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ user_id })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    views = data.views;
-                    clickPower = data.click_power;
-                    updateUI();
-                }
-            } catch (error) {
-                console.error('Error loading stats:', error);
-                tg.showAlert('Ошибка загрузки данных');
-            }
-        }
-        
-        // Обработчик клика
-        async function handleClick() {
+        // Анимация клика + логика
+        clickArea.addEventListener('click', async () => {
             // Анимация
             clickArea.style.transform = 'scale(0.95)';
-            setTimeout(() => clickArea.style.transform = 'scale(1)', 100);
+            setTimeout(() => clickArea.style.transform = '', 100);
             
+            // Отправка на сервер
             try {
                 const response = await fetch('/click', {
                     method: 'POST',
@@ -135,46 +70,13 @@
                 });
                 
                 const data = await response.json();
-                
                 if (data.success) {
-                    views = data.views;
-                    clickPower = data.click_power;
-                    updateUI();
-                    
-                    // Вибрация
-                    if (tg.HapticFeedback) {
-                        tg.HapticFeedback.impactOccurred('light');
-                    }
+                    counter.textContent = `${data.clicks} кликов`;
                 }
             } catch (error) {
-                console.error('Error handling click:', error);
-                tg.showAlert('Ошибка при обработке клика');
+                console.error('Ошибка:', error);
             }
-        }
-        
-        // Обновление интерфейса
-        function updateUI() {
-            viewsCounter.textContent = `${views} ${formatViews(views)}`;
-            clickPowerEl.textContent = clickPower;
-        }
-        
-        // Форматирование числа просмотров
-        function formatViews(num) {
-            if (num % 100 >= 11 && num % 100 <= 19) return 'просмотров';
-            switch(num % 10) {
-                case 1: return 'просмотр';
-                case 2:
-                case 3:
-                case 4: return 'просмотра';
-                default: return 'просмотров';
-            }
-        }
-        
-        // Назначаем обработчик
-        clickArea.addEventListener('click', handleClick);
-        
-        // Загружаем начальные данные
-        loadStats();
+        });
     </script>
 </body>
 </html>
