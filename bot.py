@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify, render_template
-from flask_cors import CORS
 import os
 import psycopg2
 from urllib.parse import parse_qs
@@ -7,7 +6,6 @@ import hashlib
 import hmac
 
 app = Flask(__name__)
-CORS(app)
 
 # Конфигурация
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
@@ -25,7 +23,8 @@ def init_db():
             CREATE TABLE IF NOT EXISTS users (
                 user_id BIGINT PRIMARY KEY,
                 views BIGINT NOT NULL DEFAULT 0,
-                click_power INT NOT NULL DEFAULT 1
+                click_power INT NOT NULL DEFAULT 1,
+                subscribers BIGINT NOT NULL DEFAULT 0
             )
         """)
         conn.commit()
@@ -52,12 +51,18 @@ def handle_click():
         conn = get_db_connection()
         cur = conn.cursor()
         
+        # Обновляем просмотры и подписчиков (каждый 10-й клик добавляет подписчика)
         cur.execute("""
-            INSERT INTO users (user_id, views, click_power)
-            VALUES (%s, 1, 1)
+            INSERT INTO users (user_id, views, click_power, subscribers)
+            VALUES (%s, 1, 1, 0)
             ON CONFLICT (user_id) 
-            DO UPDATE SET views = users.views + users.click_power
-            RETURNING views, click_power
+            DO UPDATE SET 
+                views = users.views + users.click_power,
+                subscribers = CASE 
+                    WHEN (users.views + 1) % 10 = 0 THEN users.subscribers + 1 
+                    ELSE users.subscribers 
+                END
+            RETURNING views, click_power, subscribers
         """, (user_id,))
         
         result = cur.fetchone()
@@ -66,7 +71,8 @@ def handle_click():
         return jsonify({
             "success": True,
             "views": result[0],
-            "click_power": result[1]
+            "click_power": result[1],
+            "subscribers": result[2]
         })
         
     except Exception as e:
@@ -88,7 +94,7 @@ def get_stats():
         cur = conn.cursor()
         
         cur.execute("""
-            SELECT views, click_power FROM users WHERE user_id = %s
+            SELECT views, click_power, subscribers FROM users WHERE user_id = %s
         """, (user_id,))
         
         result = cur.fetchone()
@@ -97,13 +103,15 @@ def get_stats():
             return jsonify({
                 "success": True,
                 "views": result[0],
-                "click_power": result[1]
+                "click_power": result[1],
+                "subscribers": result[2]
             })
         else:
             return jsonify({
                 "success": True,
                 "views": 0,
-                "click_power": 1
+                "click_power": 1,
+                "subscribers": 0
             })
             
     except Exception as e:
