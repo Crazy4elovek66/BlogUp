@@ -1,23 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hamster Mini App</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        button { padding: 10px 20px; font-size: 16px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BlogUp Clicker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500&family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Hamster Kombat</h1>
-    <div id="coins">💰 Монеты: 0</div>
-    <button id="clickBtn" class="penpot-button">
-  <img src="images/click-icon.svg" alt="Пост">
-  Создать пост
-</button>
+  <div class="container">
+    <div class="counters">
+      <div class="counter" id="viewsCounter">
+        <span>Просмотры:</span>
+        <span id="views">0</span>
+      </div>
+      <div class="counter" id="subsCounter">
+        <span>Подписчики:</span>
+        <span id="subscribers">0</span>
+      </div>
+    </div>
+    
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="levels">
+        Новичок | Эксперт | Вирусный | Легенда
+      </div>
+    </div>
+    
+    <button id="clickBtn" class="click-button">
+      <span>POST</span>
+    </button>
+    
+    <div class="upgrades">
+      <!-- Здесь будут улучшения -->
+    </div>
+  </div>
 
-    <script src="app.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
