@@ -2,29 +2,46 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BlogUp Clicker</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rubik:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        
         body {
             font-family: 'Rubik', sans-serif;
-            background: linear-gradient(135deg, #240eab, #23fbe3);
+            background: linear-gradient(135deg, #5b37ff, #8d2de2);
             margin: 0;
             padding: 20px;
             color: white;
             min-height: 100vh;
             box-sizing: border-box;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
         }
         
         .container {
             max-width: 500px;
             margin: 0 auto;
+            height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
         }
         
         .header {
             text-align: center;
             margin-bottom: 20px;
+            flex-shrink: 0;
         }
         
         .game-board {
@@ -32,18 +49,22 @@
             border-radius: 20px;
             padding: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
         
         .click-area {
             background: white;
             border-radius: 15px;
-            padding: 30px;
+            padding: 25px;
             text-align: center;
-            margin: 25px 0;
+            margin: 15px 0;
             cursor: pointer;
-            user-select: none;
             transition: transform 0.1s;
             box-shadow: 0 8px 0 rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
         }
         
         .click-area:active {
@@ -55,19 +76,21 @@
             font-family: 'Orbitron', sans-serif;
             font-size: 42px;
             font-weight: 700;
-            color: #240eab;
+            color: #5b37ff;
+            margin: 0;
         }
         
         .stats {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
+            flex-shrink: 0;
         }
         
         .stat-item {
             background: rgba(255, 255, 255, 0.15);
             border-radius: 10px;
-            padding: 15px;
+            padding: 12px;
             flex: 1;
             margin: 0 5px;
             text-align: center;
@@ -75,29 +98,33 @@
         }
         
         .stat-value {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 500;
             margin-bottom: 5px;
         }
         
         .stat-label {
-            font-size: 14px;
+            font-size: 13px;
             opacity: 0.8;
         }
         
         .levels {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
-            padding: 10px 0;
+            margin-bottom: 15px;
+            padding: 8px 0;
             border-bottom: 2px solid rgba(255, 255, 255, 0.5);
             border-top: 2px solid rgba(255, 255, 255, 0.5);
+            flex-shrink: 0;
         }
         
         .level {
-            font-size: 12px;
-            padding: 5px 10px;
-            border-radius: 15px;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .level.active {
@@ -108,21 +135,23 @@
         .buttons {
             display: flex;
             justify-content: space-between;
-            margin-top: 20px;
+            margin-top: auto;
+            flex-shrink: 0;
         }
         
         .btn {
             background: rgba(255, 255, 255, 0.2);
             border: none;
-            border-radius: 10px;
-            padding: 12px 20px;
+            border-radius: 8px;
+            padding: 10px 12px;
             color: white;
             font-family: 'Rubik', sans-serif;
             font-weight: 500;
             cursor: pointer;
             flex: 1;
-            margin: 0 5px;
+            margin: 0 4px;
             transition: background 0.3s;
+            font-size: 14px;
         }
         
         .btn:hover {
@@ -172,6 +201,27 @@
         // Инициализация Telegram WebApp
         const tg = window.Telegram.WebApp;
         tg.expand();
+        
+        // Блокировка масштабирования и изменения размера
+        function disableZoom() {
+            document.addEventListener('gesturestart', function(e) {
+                e.preventDefault();
+            });
+            
+            document.addEventListener('touchmove', function(e) {
+                if(e.scale !== 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            window.addEventListener('resize', function() {
+                window.scrollTo(0, 0);
+                document.body.style.width = window.innerWidth + 'px';
+                document.body.style.height = window.innerHeight + 'px';
+            });
+        }
+        
+        disableZoom();
         
         // Игровые переменные
         let views = 1234;
@@ -223,8 +273,17 @@
         tg.onEvent('viewportChanged', () => {
             if (tg.isClosing) {
                 // Можно сохранить данные игры перед закрытием
+                tg.sendData(JSON.stringify({
+                    views: views,
+                    subscribers: subscribers,
+                    power: clickPower
+                }));
             }
         });
+        
+        // Инициализация размера
+        document.body.style.width = window.innerWidth + 'px';
+        document.body.style.height = window.innerHeight + 'px';
     </script>
 </body>
 </html>
