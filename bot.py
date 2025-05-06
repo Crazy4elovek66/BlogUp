@@ -1,123 +1,149 @@
+import os
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
-import os
 import psycopg2
-from psycopg2 import sql
-from dotenv import load_dotenv
-
-load_dotenv()
+from urllib.parse import parse_qs
+import hashlib
+import hmac
+from datetime import datetime
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Функция для подключения к БД
+# Конфигурация
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+DB_URL = os.getenv('DATABASE_URL')  # Railway автоматически предоставляет это
+
 def get_db_connection():
-    conn = psycopg2.connect(
-        host=os.getenv('DB_HOST'),
-        database=os.getenv('DB_NAME'),
-        user=os.getenv('DB_USER'),
-        password=os.getenv('DB_PASSWORD'),
-        port=os.getenv('DB_PORT')
-    )
-    return conn
+    return psycopg2.connect(DB_URL)
 
-# Создаем таблицу при первом запуске
 def init_db():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            user_id BIGINT PRIMARY KEY,
-            views BIGINT NOT NULL DEFAULT 0,
-            click_power INT NOT NULL DEFAULT 1,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    conn.commit()
-    cur.close()
-    conn.close()
-
-init_db()
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/click', methods=['POST'])
-def handle_click():
-    data = request.get_json()
-    user_id = data.get('user_id')
-    
-    if not user_id:
-        return jsonify({"success": False, "error": "User ID not provided"}), 400
-    
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        
-        # Проверяем существование пользователя
-        cur.execute(
-            "SELECT views, click_power FROM users WHERE user_id = %s",
-            (user_id,)
-        )
-        user = cur.fetchone()
-        
-        if user:
-            # Обновляем существующего пользователя
-            views = user[0] + user[1]  # views + click_power
-            cur.execute(
-                "UPDATE users SET views = %s, updated_at = CURRENT_TIMESTAMP WHERE user_id = %s RETURNING views, click_power",
-                (views, user_id))
-        else:
-            # Создаем нового пользователя
-            views = 1
-            cur.execute(
-                "INSERT INTO users (user_id, views, click_power) VALUES (%s, %s, 1) RETURNING views, click_power",
-                (user_id, views))
-        
-        updated_data = cur.fetchone()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                user_id BIGINT PRIMARY KEY,
+                username VARCHAR(100),
+                first_name VARCHAR(100),
+                last_name VARCHAR(100),
+                views BIGINT NOT NULL DEFAULT 0,
+                click_power INT NOT NULL DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_user_id ON users(user_id);
+        """)
         conn.commit()
-        
-        return jsonify({
-            "success": True,
-            "views": updated_data[0],
-            "click_power": updated_data[1]
-        })
-        
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        print(f"Database initialization error: {e}")
     finally:
         cur.close()
         conn.close()
 
-@app.route('/get_stats', methods=['POST'])
-def get_stats():
-    data = request.get_json()
-    user_id = data.get('user_id')
-    
-    if not user_id:
+init_db()
+
+def verify_webapp_data(init_data):
+    try:
+        parsed_data = parse_qs(init_data)
+        hash_str = parsed_data.get('hash', [''])[0]
+        data_check_str = '\n'.join([
+            f"{k}={v[0]}" for k, v in sorted(parsed_data.items()) if k != 'hash'
+        ])
+        
+        secret_key = hmac.new(
+            key=b"WebAppData",
+            msg=TELEGRAM_BOT_TOKEN.encode(),
+            digestmod=hashlib.sha256
+        ).digest()
+        
+        computed_hash = hmac.new(
+            key=secret_key,
+            msg=data_check_str.encode(),
+            digestmod=hashlib.sha256
+        ).hexdigest()
+        
+        return computed_hash == hash_str
+    except Exception as e:
+        print(f"Verification error: {e}")
+        return False
+
+@app.route('/')
+def index():
+    init_data = request.args.get('initData', '')
+    if not verify_webapp_data(init_data):
+        return "Invalid Telegram WebApp initialization", 403
+    return render_template('index.html')
+
+@app.route('/click', methods=['POST'])
+def handle_click():
+    try:
+        data = request.json
+        init_data = request.headers.get('Authorization', '').replace('Bearer ', '')
+        
+        if not verify_webapp_data(init_data):
+            return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+        user_id = data.get('user_id')
+        if not user_id:
+            return jsonify({"success": False, "error": "User ID required"}), 400
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Получаем или создаем пользователя
+        cur.execute("""
+            INSERT INTO users (user_id, views, click_power)
+            VALUES (%s, 1, 1)
+            ON CONFLICT (user_id) 
+            DO UPDATE SET 
+                views = users.views + users.click_power,
+                updated_at = CURRENT_TIMESTAMP
+            RETURNING views, click_power
+        """, (user_id,))
+        
+        result = cur.fetchone()
+        conn.commit()
+        
         return jsonify({
             "success": True,
-            "views": 0,
-            "click_power": 1
+            "views": result[0],
+            "click_power": result[1]
         })
-    
+        
+    except Exception as e:
+        print(f"Error in /click: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+    finally:
+        if 'cur' in locals(): cur.close()
+        if 'conn' in locals(): conn.close()
+
+@app.route('/stats', methods=['POST'])
+def get_stats():
     try:
+        data = request.json
+        init_data = request.headers.get('Authorization', '').replace('Bearer ', '')
+        
+        if not verify_webapp_data(init_data):
+            return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+        user_id = data.get('user_id')
+        if not user_id:
+            return jsonify({"success": False, "error": "User ID required"}), 400
+
         conn = get_db_connection()
         cur = conn.cursor()
         
-        cur.execute(
-            "SELECT views, click_power FROM users WHERE user_id = %s",
-            (user_id,)
-        )
-        user = cur.fetchone()
+        cur.execute("""
+            SELECT views, click_power FROM users WHERE user_id = %s
+        """, (user_id,))
         
-        if user:
+        result = cur.fetchone()
+        if result:
             return jsonify({
                 "success": True,
-                "views": user[0],
-                "click_power": user[1]
+                "views": result[0],
+                "click_power": result[1]
             })
         else:
             return jsonify({
@@ -127,10 +153,17 @@ def get_stats():
             })
             
     except Exception as e:
+        print(f"Error in /stats: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
     finally:
-        cur.close()
-        conn.close()
+        if 'cur' in locals(): cur.close()
+        if 'conn' in locals(): conn.close()
+
+@app.after_request
+def add_headers(response):
+    response.headers['Content-Security-Policy'] = "default-src 'self' https://telegram.org; script-src 'self' https://telegram.org 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    return response
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
