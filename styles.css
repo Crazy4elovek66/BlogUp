@@ -9,6 +9,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  user-select: none;
 }
 
 .container {
@@ -36,23 +37,34 @@ body {
 }
 
 .progress-bar {
-  height: 4px;
-  background: #CCCCCC;
-  border-radius: 2px;
+  height: 8px;
+  background: #333;
+  border-radius: 4px;
   margin-bottom: 5px;
+  overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
   background: linear-gradient(to right, #00FF7F, #00BFFF);
-  border-radius: 2px;
+  border-radius: 4px;
   width: 0%;
-  transition: width 0.3s ease;
+  transition: width 0.5s ease, background-color 0.5s ease;
+}
+
+.progress-fill.hard {
+  background: linear-gradient(to right, #FF6347, #FF4500);
 }
 
 .levels {
   font-size: 14px;
   color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 5px;
+}
+
+.chance {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 /* Кнопка */
@@ -63,7 +75,7 @@ body {
   font-size: 24px;
   font-family: 'Orbitron', sans-serif;
   border-radius: 8px;
-  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   transition: transform 0.1s;
   color: #1D1818;
@@ -71,6 +83,7 @@ body {
   width: 240px;
   position: relative;
   overflow: hidden;
+  font-weight: bold;
 }
 
 .click-button:active {
@@ -93,6 +106,27 @@ body {
   pointer-events: none;
 }
 
+/* Эффект подписчика */
+@keyframes subscriberEffect {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+}
+
+.subscriber-effect {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  color: #00FF7F;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(0, 255, 127, 0.7);
+  animation: subscriberEffect 2s ease-out forwards;
+  z-index: 100;
+  pointer-events: none;
+}
+
 /* Улучшения */
 .upgrades {
   margin-top: 40px;
@@ -101,17 +135,72 @@ body {
 .upgrade {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  padding: 10px;
-  margin: 10px 0;
+  padding: 15px;
+  margin: 15px 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-left: 4px solid #FFA52E;
+}
+
+.upgrade-info {
+  text-align: left;
+}
+
+.upgrade-name {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.upgrade-desc {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .upgrade button {
   background: #00BFFF;
   border: none;
-  padding: 5px 10px;
+  padding: 8px 15px;
   border-radius: 4px;
   cursor: pointer;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.upgrade button:disabled {
+  background: #555;
+  cursor: not-allowed;
+}
+
+.upgrade button:hover:not(:disabled) {
+  background: #0080FF;
+  transform: translateY(-2px);
+}
+
+/* Уведомление о уровне */
+.level-up {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  padding: 20px 30px;
+  border-radius: 10px;
+  z-index: 200;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(0, 191, 255, 0.5);
+  animation: levelUp 3s ease-out forwards;
+}
+
+@keyframes levelUp {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  80% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+}
+
+.level-up h2 {
+  color: #00BFFF;
+  margin-top: 0;
 }
