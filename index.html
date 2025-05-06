@@ -128,4 +128,109 @@
         const initData = tg.initData;
         
         if (!user_id) {
-            tg.showAlert('Не удалось
+            tg.showAlert('Не удалось определить ваш аккаунт Telegram');
+            throw new Error('User ID not found');
+        }
+        
+        // Элементы интерфейса
+        const clickArea = document.getElementById('click-area');
+        const viewsCounter = document.getElementById('views-counter');
+        const clickPowerEl = document.getElementById('click-power');
+        
+        // Состояние игры
+        let views = 0;
+        let clickPower = 1;
+        let level = 1;
+        
+        // Форматирование чисел
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+        
+        // Обновление интерфейса
+        function updateUI() {
+            viewsCounter.textContent = `${formatNumber(views)} просмотров`;
+            clickPowerEl.textContent = formatNumber(clickPower);
+            document.getElementById('level').textContent = level;
+        }
+        
+        // Загрузка статистики
+        async function loadStats() {
+            try {
+                viewsCounter.classList.add('loading');
+                
+                const response = await fetch('/stats', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${initData}`
+                    },
+                    body: JSON.stringify({ user_id })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    views = data.views;
+                    clickPower = data.click_power;
+                    level = Math.floor(views / 1000) + 1;
+                    updateUI();
+                } else {
+                    throw new Error(data.error || 'Неизвестная ошибка');
+                }
+            } catch (error) {
+                console.error('Stats load error:', error);
+                viewsCounter.classList.add('error');
+                viewsCounter.textContent = 'Ошибка загрузки';
+                tg.showAlert(`Ошибка: ${error.message}`);
+            } finally {
+                viewsCounter.classList.remove('loading');
+            }
+        }
+        
+        // Обработка клика
+        async function handleClick() {
+            try {
+                // Анимация
+                clickArea.style.transform = 'scale(0.95)';
+                setTimeout(() => clickArea.style.transform = 'scale(1)', 100);
+                
+                // Вибрация
+                if (tg.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('light');
+                }
+                
+                // Отправка запроса
+                const response = await fetch('/click', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${initData}`
+                    },
+                    body: JSON.stringify({ user_id })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    views = data.views;
+                    clickPower = data.click_power;
+                    level = Math.floor(views / 1000) + 1;
+                    updateUI();
+                } else {
+                    throw new Error(data.error || 'Не удалось обработать клик');
+                }
+            } catch (error) {
+                console.error('Click error:', error);
+                tg.showAlert(`Ошибка: ${error.message}`);
+            }
+        }
+        
+        // Назначаем обработчик
+        clickArea.addEventListener('click', handleClick);
+        
+        // Загружаем начальные данные
+        loadStats();
+    </script>
+</body>
+</html>
