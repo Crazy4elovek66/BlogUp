@@ -61,6 +61,31 @@ const levelText = document.getElementById('levelText');
 const chanceText = document.getElementById('chanceText');
 
 // Инициализация игры
+// В разделе скриптов добавьте обработку ошибок:
+async function loadStats() {
+    try {
+        const response = await fetch('/get_stats', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ user_id })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            views = data.views;
+            clickPower = data.click_power;
+            updateUI();
+        } else {
+            console.error('Error loading stats:', data.error);
+            tg.showAlert('Ошибка загрузки данных. Попробуйте позже.');
+        }
+    } catch (error) {
+        console.error('Network error:', error);
+        tg.showAlert('Проблемы с соединением. Проверьте интернет.');
+    }
+}
 function initGame() {
   // Загрузка сохранения
   const save = localStorage.getItem('blogUpSave');
