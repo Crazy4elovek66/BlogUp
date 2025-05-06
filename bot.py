@@ -68,7 +68,7 @@ def handle_click():
             views = user[0] + user[1]  # views + click_power
             cur.execute(
                 "UPDATE users SET views = %s, updated_at = CURRENT_TIMESTAMP WHERE user_id = %s RETURNING views, click_power",
-                (views, user_id)
+                (views, user_id))
         else:
             # Создаем нового пользователя
             views = 1
