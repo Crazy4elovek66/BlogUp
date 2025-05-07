@@ -1,74 +1,156 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlogUp</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Rubik:wght@400;500&display=swap" rel="stylesheet">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-</head>
-<body>
-    <div class="frame">
-        <div class="rectangle main-bg"></div>
-        
-        <div class="group">
-            <div class="rectangle post-bg"></div>
-            <div class="post-text">POST</div>
-            <div class="rectangle post-accent"></div>
-        </div>
-        
-        <div class="levels">
-            <span class="level active">Новичок</span>
-            <span class="level">Эксперт</span>
-            <span class="level">Вирусный</span>
-            <span class="level">Легенда</span>
-        </div>
-        
-        <div class="divider"></div>
-        
-        <div class="counter">
-            <div class="counter-item">
-                <span class="counter-label">Просмотры:</span>
-                <span class="counter-value" id="views">1,234</span>
-            </div>
-            <div class="counter-item">
-                <span class="counter-label">Подписчики:</span>
-                <span class="counter-value" id="subscribers">1,234</span>
-            </div>
-        </div>
-        
-        <button class="click-btn" id="clickBtn">Кликнуть</button>
+<!-- frame: Основа -->
+<div class="frame 240eabbf878b">
+  <!-- rect: Rectangle -->
+  <div class="shape rect rectangle-23fbe3958966">
+  </div>
+  <!-- group: Group -->
+  <div class="group group-2402738623cf">
+    <!-- rect: Rectangle -->
+    <div class="shape rect rectangle-23fd5e282db1">
     </div>
-
-    <script>
-        // Инициализация Telegram WebApp
-        const tg = window.Telegram.WebApp;
-        
-        // Элементы интерфейса
-        const viewsElement = document.getElementById('views');
-        const subscribersElement = document.getElementById('subscribers');
-        const clickBtn = document.getElementById('clickBtn');
-        
-        // Игровые переменные
-        let views = 1234;
-        let subscribers = 1234;
-        let clickPower = 1;
-        
-        // Форматирование чисел
-        function formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
-
-        // Обработчик клика
-        clickBtn.addEventListener('click', () => {
-            views += clickPower;
-            subscribers += Math.floor(clickPower / 10);
-            viewsElement.textContent = formatNumber(views);
-            subscribersElement.textContent = formatNumber(subscribers);
-        });
-        
-        tg.ready();
-    </script>
-</body>
-</html>
+    <!-- text: POST -->
+    <div class="shape text post-23fd91b6a668">
+      <div class="text-node-html" id="html-text-node-28dc650e-7736-80bb-8006-23fd91b6a668" data-x="-414" data-y="417.00000000000057">
+        <div class="root rich-text root-0" style="display:flex;white-space:break-spaces;align-items:flex-start" xmlns="http://www.w3.org/1999/xhtml">
+          <div class="paragraph-set root-0-paragraph-set-0">
+            <p class="paragraph root-0-paragraph-set-0-paragraph-0" dir="ltr"><span class="text-node root-0-paragraph-set-0-paragraph-0-text-0" style="color:rgba(29, 24, 24, 1);text-transform:none;line-break:auto;overflow-wrap:initial;white-space:break-spaces;font-size:49px;text-rendering:geometricPrecision;caret-color:rgba(29, 24, 24, 1);text-decoration:none;--font-id:gfont-orbitron;--fills:[[&quot;^ &quot;,&quot;~:fill-color&quot;,&quot;#1d1818&quot;,&quot;~:fill-opacity&quot;,1]];letter-spacing:0px;font-family:&quot;Orbitron&quot;;font-style:normal;font-weight:500">POST</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- rect: 4540244 -->
+    <div class="shape rect c-4540244-2401c1367a3d">
+    </div>
+  </div>
+  <!-- text: Новичок | Эксперт | Вирусный | Легенда -->
+  <div class="shape text 2403ac3d9843">
+    <svg width="356" xmlns="http://www.w3.org/2000/svg" height="105" id="screenshot-35d45df6-2421-80f4-8006-2403ac3d9843" viewBox="-530 196 356 105" style="-webkit-print-color-adjust::exact" xmlns:xlink="http://www.w3.org/1999/xlink" fill="none" version="1.1">
+      <style></style>
+      <g id="shape-35d45df6-2421-80f4-8006-2403ac3d9843">
+        <defs>
+          <filter id="filter-render-66" x="-0.10074626865671642" y="-1.588235294117647" width="1.2462686567164178" height="4.882352941176472" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">
+            <feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood>
+            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"></feColorMatrix>
+            <feOffset dx="4" dy="4"></feOffset>
+            <feGaussianBlur stdDeviation="2"></feGaussianBlur>
+            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0"></feColorMatrix>
+            <feBlend mode="normal" in2="BackgroundImageFix" result="filter_35d45df6-2421-80f4-8006-24043ddb9592"></feBlend>
+            <feBlend mode="normal" in="SourceGraphic" in2="filter_35d45df6-2421-80f4-8006-24043ddb9592" result="shape"></feBlend>
+          </filter>
+          <filter id="filter-shadow-render-66" x="-0.10074626865671642" y="-1.588235294117647" width="1.2462686567164178" height="4.882352941176472" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">
+            <feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood>
+            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"></feColorMatrix>
+            <feOffset dx="4" dy="4"></feOffset>
+            <feGaussianBlur stdDeviation="2"></feGaussianBlur>
+            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0"></feColorMatrix>
+            <feBlend mode="normal" in2="BackgroundImageFix" result="filter_35d45df6-2421-80f4-8006-24043ddb9592"></feBlend>
+            <feBlend mode="normal" in="SourceGraphic" in2="filter_35d45df6-2421-80f4-8006-24043ddb9592" result="shape"></feBlend>
+          </filter>
+        </defs>
+        <g transform="matrix(1.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000)" class="text-container" x="-498" y="228.00000000000009" width="268" height="17" filter="url(#filter-render-66)" rx="0" ry="0">
+          <defs>
+            <pattern patternUnits="userSpaceOnUse" x="-498" y="228.00000000000009" width="267.65625" height="17" id="fill-0-render-66-0">
+              <g>
+                <rect width="267.65625" height="17" style="fill:#ffffff;fill-opacity:1"></rect>
+              </g>
+            </pattern>
+          </defs>
+          <g class="fills" id="fills-35d45df6-2421-80f4-8006-2403ac3d9843"><text x="-498" y="244.00000000000009" dominant-baseline="ideographic" textLength="267.65625" lengthAdjust="spacingAndGlyphs" style="text-transform:none;font-family:Rubik;letter-spacing:normal;font-style:normal;font-weight:400;white-space:pre;font-size:14px;text-decoration:none solid rgb(255, 255, 255);direction:ltr;fill:#ffffff;fill-opacity:1">Новичок | Эксперт | Вирусный | Легенда</text></g>
+        </g>
+      </g>
+    </svg>
+  </div>
+  <!-- path: Path -->
+  <div class="shape path path-2402f95d6062">
+    <svg width="321.04" xmlns="http://www.w3.org/2000/svg" height="11.01" id="screenshot-35d45df6-2421-80f4-8006-2402f95d6062" viewBox="-527 216 321.04 11.01" style="-webkit-print-color-adjust::exact" xmlns:xlink="http://www.w3.org/1999/xlink" fill="none" version="1.1">
+      <g id="shape-35d45df6-2421-80f4-8006-2402f95d6062">
+        <defs></defs>
+        <g class="fills" id="fills-35d45df6-2421-80f4-8006-2402f95d6062">
+          <path d="M-522.000,221.000L-210.960,221.000"></path>
+        </g>
+        <g id="strokes-43a10c2a-33dc-8091-8006-2627de3eed56-35d45df6-2421-80f4-8006-2402f95d6062" class="strokes">
+          <g class="stroke-shape">
+            <defs></defs>
+            <path d="M-522.000,221.000L-210.960,221.000" style="fill:none;fill-opacity:none;stroke-width:2;stroke:#ffffff;stroke-opacity:1"></path>
+          </g>
+        </g>
+      </g>
+    </svg>
+  </div>
+  <!-- text: Просмотры: 1,234 -->
+  <div class="shape text 2404774d0026">
+    <svg width="301" xmlns="http://www.w3.org/2000/svg" height="117" id="screenshot-35d45df6-2421-80f4-8006-2404774d0026" viewBox="-507 116 301 117" style="-webkit-print-color-adjust::exact" xmlns:xlink="http://www.w3.org/1999/xlink" fill="none" version="1.1">
+      <style></style>
+      <g id="shape-35d45df6-2421-80f4-8006-2404774d0026">
+        <defs>
+          <filter id="filter-render-68" x="-0.12676056338028163" y="-0.9310344827586207" width="1.3098591549295773" height="3.2758620689655173" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">
+            <feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood>
+            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"></feColorMatrix>
+            <feOffset dx="4" dy="4"></feOffset>
+            <feGaussianBlur stdDeviation="2"></feGaussianBlur>
+            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0"></feColorMatrix>
+            <feBlend mode="normal" in2="BackgroundImageFix" result="filter_28dc650e-7736-80bb-8006-23fcdbe6d0d7"></feBlend>
+            <feBlend mode="normal" in="SourceGraphic" in2="filter_28dc650e-7736-80bb-8006-23fcdbe6d0d7" result="shape"></feBlend>
+          </filter>
+          <filter id="filter-shadow-render-68" x="-0.12676056338028163" y="-0.9310344827586207" width="1.3098591549295773" height="3.2758620689655173" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">
+            <feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood>
+            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"></feColorMatrix>
+            <feOffset dx="4" dy="4"></feOffset>
+            <feGaussianBlur stdDeviation="2"></feGaussianBlur>
+            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0"></feColorMatrix>
+            <feBlend mode="normal" in2="BackgroundImageFix" result="filter_28dc650e-7736-80bb-8006-23fcdbe6d0d7"></feBlend>
+            <feBlend mode="normal" in="SourceGraphic" in2="filter_28dc650e-7736-80bb-8006-23fcdbe6d0d7" result="shape"></feBlend>
+          </filter>
+        </defs>
+        <g transform="matrix(1.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000)" class="text-container" x="-475" y="148.00000000000009" width="213.0000000000001" height="29" filter="url(#filter-render-68)" rx="0" ry="0">
+          <defs>
+            <pattern patternUnits="userSpaceOnUse" x="-475" y="148.00000000000009" width="212.1875" height="28" id="fill-0-render-68-0">
+              <g>
+                <rect width="212.1875" height="28" style="fill:#ffffff;fill-opacity:1"></rect>
+              </g>
+            </pattern>
+          </defs>
+          <g class="fills" id="fills-35d45df6-2421-80f4-8006-2404774d0026"><text x="-475" y="176.00000000000009" dominant-baseline="ideographic" textLength="212.1875" lengthAdjust="spacingAndGlyphs" style="text-transform:none;font-family:Rubik;letter-spacing:normal;font-style:normal;font-weight:500;white-space:pre;font-size:24px;text-decoration:none solid rgb(255, 255, 255);direction:ltr;fill:#ffffff;fill-opacity:1">Просмотры: 1,234</text></g>
+        </g>
+      </g>
+    </svg>
+  </div>
+  <!-- text: Подписчики: 1,234 -->
+  <div class="shape text 23fc6dddbc9e">
+    <svg width="311" xmlns="http://www.w3.org/2000/svg" height="117" id="screenshot-28dc650e-7736-80bb-8006-23fc6dddbc9e" viewBox="-507 148 311 117" style="-webkit-print-color-adjust::exact" xmlns:xlink="http://www.w3.org/1999/xlink" fill="none" version="1.1">
+      <style></style>
+      <g id="shape-28dc650e-7736-80bb-8006-23fc6dddbc9e">
+        <defs>
+          <filter id="filter-render-69" x="-0.1210762331838565" y="-0.9310344827586207" width="1.295964125560538" height="3.2758620689655173" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">
+            <feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood>
+            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"></feColorMatrix>
+            <feOffset dx="4" dy="4"></feOffset>
+            <feGaussianBlur stdDeviation="2"></feGaussianBlur>
+            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0"></feColorMatrix>
+            <feBlend mode="normal" in2="BackgroundImageFix" result="filter_28dc650e-7736-80bb-8006-23fcdbe6d0d7"></feBlend>
+            <feBlend mode="normal" in="SourceGraphic" in2="filter_28dc650e-7736-80bb-8006-23fcdbe6d0d7" result="shape"></feBlend>
+          </filter>
+          <filter id="filter-shadow-render-69" x="-0.1210762331838565" y="-0.9310344827586207" width="1.295964125560538" height="3.2758620689655173" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">
+            <feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood>
+            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"></feColorMatrix>
+            <feOffset dx="4" dy="4"></feOffset>
+            <feGaussianBlur stdDeviation="2"></feGaussianBlur>
+            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0"></feColorMatrix>
+            <feBlend mode="normal" in2="BackgroundImageFix" result="filter_28dc650e-7736-80bb-8006-23fcdbe6d0d7"></feBlend>
+            <feBlend mode="normal" in="SourceGraphic" in2="filter_28dc650e-7736-80bb-8006-23fcdbe6d0d7" result="shape"></feBlend>
+          </filter>
+        </defs>
+        <g transform="matrix(1.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000)" class="text-container" x="-475" y="180.00000000000009" width="223" height="29" filter="url(#filter-render-69)" rx="0" ry="0">
+          <defs>
+            <pattern patternUnits="userSpaceOnUse" x="-475" y="180.00000000000009" width="222.734375" height="28" id="fill-0-render-69-0">
+              <g>
+                <rect width="222.734375" height="28" style="fill:#ffffff;fill-opacity:1"></rect>
+              </g>
+            </pattern>
+          </defs>
+          <g class="fills" id="fills-28dc650e-7736-80bb-8006-23fc6dddbc9e"><text x="-475" y="208.00000000000009" dominant-baseline="ideographic" textLength="222.734375" lengthAdjust="spacingAndGlyphs" style="text-transform:none;font-family:Rubik;letter-spacing:normal;font-style:normal;font-weight:500;white-space:pre;font-size:24px;text-decoration:none solid rgb(255, 255, 255);direction:ltr;fill:#ffffff;fill-opacity:1">Подписчики: 1,234</text></g>
+        </g>
+      </g>
+    </svg>
+  </div>
+</div>
