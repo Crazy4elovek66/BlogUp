@@ -1,206 +1,144 @@
 /* Основные стили */
 body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Rubik', sans-serif;
-  background: linear-gradient(to bottom, #251EFD 0%, #B200FF 80%);
-  color: white;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  user-select: none;
+    margin: 0;
+    padding: 0;
+    font-family: 'Rubik', sans-serif;
+    background-color: #1a1a1a;
+    color: white;
 }
 
-.container {
-  width: 100%;
-  max-width: 360px;
-  padding: 20px;
-  text-align: center;
+.frame {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-/* Счётчики */
-.counters {
-  margin-bottom: 30px;
+/* Прямоугольники */
+.rectangle {
+    position: absolute;
+    border-radius: 10px;
 }
 
-.counter {
-  font-size: 24px;
-  margin: 10px 0;
-  display: flex;
-  justify-content: space-between;
+.main-bg {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #2c3e50, #4ca1af);
+    top: 0;
+    left: 0;
+    z-index: -1;
 }
 
-/* Прогресс-бар */
-.progress-container {
-  margin: 20px 0;
+.group {
+    position: relative;
+    margin: 20px 0;
+    height: 200px;
 }
 
-.progress-bar {
-  height: 8px;
-  background: #333;
-  border-radius: 4px;
-  margin-bottom: 5px;
-  overflow: hidden;
+.post-bg {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
 }
 
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(to right, #00FF7F, #00BFFF);
-  border-radius: 4px;
-  width: 0%;
-  transition: width 0.5s ease, background-color 0.5s ease;
+.post-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 49px;
+    font-weight: 500;
+    color: #1d1818;
 }
 
-.progress-fill.hard {
-  background: linear-gradient(to right, #FF6347, #FF4500);
+.post-accent {
+    width: 50px;
+    height: 5px;
+    background-color: #ffffff;
+    bottom: 20px;
+    left: 20px;
 }
 
+/* Уровни */
 .levels {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 5px;
+    display: flex;
+    justify-content: space-around;
+    margin: 30px 0;
+    font-size: 14px;
+    font-weight: 400;
 }
 
-.chance {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+.level {
+    padding: 5px 10px;
+    opacity: 0.7;
+}
+
+.level.active {
+    opacity: 1;
+    font-weight: 500;
+    border-bottom: 2px solid white;
+}
+
+/* Разделитель */
+.divider {
+    width: 100%;
+    height: 2px;
+    background-color: white;
+    margin: 20px 0;
+}
+
+/* Счетчики */
+.counter {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.counter-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.counter-label {
+    font-size: 24px;
+    font-weight: 500;
+}
+
+.counter-value {
+    font-size: 24px;
+    font-weight: 500;
+    font-family: 'Orbitron', sans-serif;
 }
 
 /* Кнопка */
-.click-button {
-  background: #FFA52E;
-  border: none;
-  padding: 15px 30px;
-  font-size: 24px;
-  font-family: 'Orbitron', sans-serif;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-  transition: transform 0.1s;
-  color: #1D1818;
-  margin-top: 30px;
-  width: 240px;
-  position: relative;
-  overflow: hidden;
-  font-weight: bold;
+.click-btn {
+    width: 100%;
+    padding: 15px;
+    margin-top: 30px;
+    background: linear-gradient(135deg, #4CA1AF, #2C3E50);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.2s;
 }
 
-.click-button:active {
-  transform: scale(0.95);
+.click-btn:hover {
+    transform: scale(1.02);
 }
 
-/* Анимация клика */
-@keyframes clickEffect {
-  0% { transform: scale(1); opacity: 1; }
-  100% { transform: scale(3); opacity: 0; }
+.click-btn:active {
+    transform: scale(0.98);
 }
 
-.click-effect {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 50%;
-  animation: clickEffect 0.5s ease-out;
-  pointer-events: none;
-}
-
-/* Эффект подписчика */
-@keyframes subscriberEffect {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-}
-
-.subscriber-effect {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 24px;
-  color: #00FF7F;
-  font-weight: bold;
-  text-shadow: 0 0 10px rgba(0, 255, 127, 0.7);
-  animation: subscriberEffect 2s ease-out forwards;
-  z-index: 100;
-  pointer-events: none;
-}
-
-/* Улучшения */
-.upgrades {
-  margin-top: 40px;
-}
-
-.upgrade {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 15px;
-  margin: 15px 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-left: 4px solid #FFA52E;
-}
-
-.upgrade-info {
-  text-align: left;
-}
-
-.upgrade-name {
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.upgrade-desc {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.upgrade button {
-  background: #00BFFF;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: 'Orbitron', sans-serif;
-  font-weight: bold;
-  transition: all 0.3s;
-}
-
-.upgrade button:disabled {
-  background: #555;
-  cursor: not-allowed;
-}
-
-.upgrade button:hover:not(:disabled) {
-  background: #0080FF;
-  transform: translateY(-2px);
-}
-
-/* Уведомление о уровне */
-.level-up {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.8);
-  padding: 20px 30px;
-  border-radius: 10px;
-  z-index: 200;
-  text-align: center;
-  box-shadow: 0 0 20px rgba(0, 191, 255, 0.5);
-  animation: levelUp 3s ease-out forwards;
-}
-
-@keyframes levelUp {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-  20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-  80% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-}
-
-.level-up h2 {
-  color: #00BFFF;
-  margin-top: 0;
+/* Тени и эффекты */
+.post-bg, .click-btn, .counter-item {
+    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2);
 }
