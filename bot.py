@@ -100,4 +100,8 @@ def save_user_data():
         conn.close()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=os.getenv('PORT', 5000))
+    # Для локального тестирования
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+else:
+    # Для продакшена на Railway
+    gunicorn_app = app
