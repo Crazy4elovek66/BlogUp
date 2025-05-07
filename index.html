@@ -1,116 +1,188 @@
-// В начале скрипта добавляем:
-const backendUrl = 'https://blogup.up.railway.app'; // Замените на ваш URL
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlogUp</title>
+    <!-- Подключение стилей -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Подключение Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="wrapper">
+        <header class="header">
+            <img class="logo" src="img/logo.png" alt="BlogUp Logo">
+            <div class="user-info">
+                <div class="level active">Новичок</div>
+                <div class="level">Блогер</div>
+                <div class="level">Профи</div>
+            </div>
+        </header>
 
-// Функция загрузки данных пользователя
-async function loadUserData() {
-    try {
-        const initData = tg.initData;
-        const user = tg.initDataUnsafe.user;
+        <main class="main">
+            <div class="counter-block">
+                <div class="counter">
+                    <span class="counter__number" id="views">0</span>
+                    <span class="counter__label">Просмотров</span>
+                </div>
+                <div class="counter">
+                    <span class="counter__number" id="subscribers">0</span>
+                    <span class="counter__label">Подписчиков</span>
+                </div>
+            </div>
+
+            <button class="click-btn" id="clickBtn">Кликнуть</button>
+
+            <div class="upgrades">
+                <div class="upgrade" id="upgrade1">
+                    <h3>Улучшение клика</h3>
+                    <p>+1 к силе клика</p>
+                    <button class="buy-btn">Купить (100)</button>
+                </div>
+                <!-- Добавьте другие улучшения по аналогии -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Подключение скриптов в конце body -->
+    <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
         
-        if (!user) {
-            throw new Error('User not authorized');
+        // Элементы интерфейса
+        const viewsElement = document.getElementById('views');
+        const subscribersElement = document.getElementById('subscribers');
+        const clickBtn = document.getElementById('clickBtn');
+        
+        // Игровые переменные
+        let views = 0;
+        let subscribers = 0;
+        let clickPower = 1;
+        
+        // Форматирование чисел
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
         }
-        
-        const response = await fetch(`${backendUrl}/api/user_data?user_id=${user.id}`, {
-            headers: {
-                'Content-Type': 'application/json',
+
+        // Ваш JavaScript код с исправлениями:
+        const backendUrl = 'https://blogup.up.railway.app';
+
+        async function loadUserData() {
+            try {
+                const user = tg.initDataUnsafe?.user;
+                
+                if (!user) {
+                    throw new Error('User not authorized');
+                }
+                
+                const response = await fetch(`${backendUrl}/api/user_data?user_id=${user.id}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load user data');
+                }
+                
+                return await response.json();
+                
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                return {
+                    views: 0,
+                    subscribers: 0,
+                    click_power: 1,
+                    level: 'Новичок'
+                };
             }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to load user data');
         }
-        
-        const data = await response.json();
-        return data;
-        
-    } catch (error) {
-        console.error('Error loading user data:', error);
-        // Возвращаем данные по умолчанию при ошибке
-        return {
-            views: 0,
-            subscribers: 0,
-            click_power: 1,
-            level: 'Новичок'
-        };
-    }
-}
 
-// Функция сохранения данных пользователя
-async function saveUserData(data) {
-    try {
-        const user = tg.initDataUnsafe.user;
-        
-        if (!user) {
-            throw new Error('User not authorized');
+        async function saveUserData(data) {
+            try {
+                const user = tg.initDataUnsafe?.user;
+                
+                if (!user) {
+                    throw new Error('User not authorized');
+                }
+                
+                const response = await fetch(`${backendUrl}/api/save_data`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: user.id,
+                        ...data
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to save user data');
+                }
+                
+                return await response.json();
+                
+            } catch (error) {
+                console.error('Error saving user data:', error);
+            }
         }
-        
-        const response = await fetch(`${backendUrl}/api/save_data`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                user_id: user.id,
-                ...data
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to save user data');
-        }
-        
-        return await response.json();
-        
-    } catch (error) {
-        console.error('Error saving user data:', error);
-    }
-}
 
-// Обновляем инициализацию игры
-async function initGame() {
-    const userData = await loadUserData();
-    
-    // Устанавливаем начальные значения
-    views = userData.views || 0;
-    subscribers = userData.subscribers || 0;
-    clickPower = userData.click_power || 1;
-    
-    // Обновляем интерфейс
-    viewsElement.textContent = formatNumber(views);
-    subscribersElement.textContent = formatNumber(subscribers);
-    
-    // Устанавливаем активный уровень
-    document.querySelectorAll('.level').forEach(levelEl => {
-        levelEl.classList.remove('active');
-        if (levelEl.textContent === userData.level) {
-            levelEl.classList.add('active');
-        }
-    });
-    
-    // Сохраняем данные при закрытии
-    tg.onEvent('viewportChanged', async () => {
-        if (tg.isClosing) {
-            await saveUserData({
-                views: views,
-                subscribers: subscribers,
-                click_power: clickPower,
-                level: document.querySelector('.level.active').textContent
+        async function initGame() {
+            const userData = await loadUserData();
+            
+            // Устанавливаем начальные значения
+            views = userData.views || 0;
+            subscribers = userData.subscribers || 0;
+            clickPower = userData.click_power || 1;
+            
+            // Обновляем интерфейс
+            viewsElement.textContent = formatNumber(views);
+            subscribersElement.textContent = formatNumber(subscribers);
+            
+            // Устанавливаем активный уровень
+            document.querySelectorAll('.level').forEach(levelEl => {
+                levelEl.classList.remove('active');
+                if (levelEl.textContent === userData.level) {
+                    levelEl.classList.add('active');
+                }
             });
+            
+            // Обработчик клика
+            clickBtn.addEventListener('click', () => {
+                views += clickPower;
+                subscribers += Math.floor(clickPower / 10);
+                viewsElement.textContent = formatNumber(views);
+                subscribersElement.textContent = formatNumber(subscribers);
+            });
+            
+            // Сохраняем данные при закрытии
+            tg.onEvent('viewportChanged', async () => {
+                if (tg.isClosing) {
+                    await saveUserData({
+                        views: views,
+                        subscribers: subscribers,
+                        click_power: clickPower,
+                        level: document.querySelector('.level.active').textContent
+                    });
+                }
+            });
+            
+            // Периодическое автосохранение
+            setInterval(async () => {
+                await saveUserData({
+                    views: views,
+                    subscribers: subscribers,
+                    click_power: clickPower,
+                    level: document.querySelector('.level.active').textContent
+                });
+            }, 30000);
         }
-    });
-    
-    // Периодическое автосохранение (каждые 30 секунд)
-    setInterval(async () => {
-        await saveUserData({
-            views: views,
-            subscribers: subscribers,
-            click_power: clickPower,
-            level: document.querySelector('.level.active').textContent
-        });
-    }, 30000);
-}
 
-// Заменяем вызов tg.expand() на:
-tg.ready();
-initGame();
+        // Инициализация приложения
+        tg.ready();
+        initGame();
+    </script>
+</body>
+</html>
