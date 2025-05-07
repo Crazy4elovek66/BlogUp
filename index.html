@@ -1,289 +1,116 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BlogUp Clicker</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rubik:wght@400;500&display=swap" rel="stylesheet">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        * {
-            -webkit-tap-highlight-color: transparent;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            touch-action: manipulation;
-        }
-        
-        body {
-            font-family: 'Rubik', sans-serif;
-            background: linear-gradient(135deg, #5b37ff, #8d2de2);
-            margin: 0;
-            padding: 20px;
-            color: white;
-            min-height: 100vh;
-            box-sizing: border-box;
-            overflow: hidden;
-            position: fixed;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            height: calc(100vh - 40px);
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            flex-shrink: 0;
-        }
-        
-        .game-board {
-            background: rgba(29, 24, 24, 0.7);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        
-        .click-area {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            text-align: center;
-            margin: 15px 0;
-            cursor: pointer;
-            transition: transform 0.1s;
-            box-shadow: 0 8px 0 rgba(0, 0, 0, 0.2);
-            flex-shrink: 0;
-        }
-        
-        .click-area:active {
-            transform: translateY(5px);
-            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
-        }
-        
-        .click-text {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 42px;
-            font-weight: 700;
-            color: #5b37ff;
-            margin: 0;
-        }
-        
-        .stats {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            flex-shrink: 0;
-        }
-        
-        .stat-item {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 10px;
-            padding: 12px;
-            flex: 1;
-            margin: 0 5px;
-            text-align: center;
-            backdrop-filter: blur(5px);
-        }
-        
-        .stat-value {
-            font-size: 22px;
-            font-weight: 500;
-            margin-bottom: 5px;
-        }
-        
-        .stat-label {
-            font-size: 13px;
-            opacity: 0.8;
-        }
-        
-        .levels {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            padding: 8px 0;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.5);
-            border-top: 2px solid rgba(255, 255, 255, 0.5);
-            flex-shrink: 0;
-        }
-        
-        .level {
-            font-size: 11px;
-            padding: 4px 8px;
-            border-radius: 12px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .level.active {
-            background: rgba(255, 255, 255, 0.3);
-            font-weight: 500;
-        }
-        
-        .buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: auto;
-            flex-shrink: 0;
-        }
-        
-        .btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            border-radius: 8px;
-            padding: 10px 12px;
-            color: white;
-            font-family: 'Rubik', sans-serif;
-            font-weight: 500;
-            cursor: pointer;
-            flex: 1;
-            margin: 0 4px;
-            transition: background 0.3s;
-            font-size: 14px;
-        }
-        
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>BLOG UP</h1>
-        </div>
-        
-        <div class="game-board">
-            <div class="levels">
-                <div class="level active">Новичок</div>
-                <div class="level">Эксперт</div>
-                <div class="level">Вирусный</div>
-                <div class="level">Легенда</div>
-            </div>
-            
-            <div class="stats">
-                <div class="stat-item">
-                    <div class="stat-value" id="views">1,234</div>
-                    <div class="stat-label">Просмотры</div>
-                </div>
-                
-                <div class="stat-item">
-                    <div class="stat-value" id="subscribers">1,234</div>
-                    <div class="stat-label">Подписчики</div>
-                </div>
-            </div>
-            
-            <div class="click-area" id="clickArea">
-                <div class="click-text">POST</div>
-            </div>
-            
-            <div class="buttons">
-                <button class="btn" id="shopBtn">Магазин</button>
-                <button class="btn" id="upgradesBtn">Улучшения</button>
-                <button class="btn" id="statsBtn">Статистика</button>
-            </div>
-        </div>
-    </div>
+// В начале скрипта добавляем:
+const backendUrl = 'https://your-railway-app-url.up.railway.app'; // Замените на ваш URL
 
-    <script>
-        // Инициализация Telegram WebApp
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+// Функция загрузки данных пользователя
+async function loadUserData() {
+    try {
+        const initData = tg.initData;
+        const user = tg.initDataUnsafe.user;
         
-        // Блокировка масштабирования и изменения размера
-        function disableZoom() {
-            document.addEventListener('gesturestart', function(e) {
-                e.preventDefault();
-            });
-            
-            document.addEventListener('touchmove', function(e) {
-                if(e.scale !== 1) {
-                    e.preventDefault();
-                }
-            }, { passive: false });
-            
-            window.addEventListener('resize', function() {
-                window.scrollTo(0, 0);
-                document.body.style.width = window.innerWidth + 'px';
-                document.body.style.height = window.innerHeight + 'px';
-            });
+        if (!user) {
+            throw new Error('User not authorized');
         }
         
-        disableZoom();
-        
-        // Игровые переменные
-        let views = 1234;
-        let subscribers = 1234;
-        let clickPower = 1;
-        
-        // Элементы DOM
-        const clickArea = document.getElementById('clickArea');
-        const viewsElement = document.getElementById('views');
-        const subscribersElement = document.getElementById('subscribers');
-        
-        // Форматирование чисел
-        function formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
-        
-        // Обработчик клика
-        clickArea.addEventListener('click', () => {
-            views += clickPower;
-            // Шанс 30% получить подписчика
-            if (Math.random() < 0.3) {
-                subscribers += 1;
-                subscribersElement.textContent = formatNumber(subscribers);
-            }
-            
-            viewsElement.textContent = formatNumber(views);
-            
-            // Анимация клика
-            clickArea.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                clickArea.style.transform = 'scale(1)';
-            }, 100);
-        });
-        
-        // Кнопки меню
-        document.getElementById('shopBtn').addEventListener('click', () => {
-            tg.showAlert('Магазин будет доступен в следующем обновлении!');
-        });
-        
-        document.getElementById('upgradesBtn').addEventListener('click', () => {
-            tg.showAlert('Система улучшений скоро появится!');
-        });
-        
-        document.getElementById('statsBtn').addEventListener('click', () => {
-            tg.showAlert(`Ваша статистика:\n\nПросмотры: ${formatNumber(views)}\nПодписчики: ${formatNumber(subscribers)}`);
-        });
-        
-        // Обработчик закрытия WebApp
-        tg.onEvent('viewportChanged', () => {
-            if (tg.isClosing) {
-                // Можно сохранить данные игры перед закрытием
-                tg.sendData(JSON.stringify({
-                    views: views,
-                    subscribers: subscribers,
-                    power: clickPower
-                }));
+        const response = await fetch(`${backendUrl}/api/user_data?user_id=${user.id}`, {
+            headers: {
+                'Content-Type': 'application/json',
             }
         });
         
-        // Инициализация размера
-        document.body.style.width = window.innerWidth + 'px';
-        document.body.style.height = window.innerHeight + 'px';
-    </script>
-</body>
-</html>
+        if (!response.ok) {
+            throw new Error('Failed to load user data');
+        }
+        
+        const data = await response.json();
+        return data;
+        
+    } catch (error) {
+        console.error('Error loading user data:', error);
+        // Возвращаем данные по умолчанию при ошибке
+        return {
+            views: 0,
+            subscribers: 0,
+            click_power: 1,
+            level: 'Новичок'
+        };
+    }
+}
+
+// Функция сохранения данных пользователя
+async function saveUserData(data) {
+    try {
+        const user = tg.initDataUnsafe.user;
+        
+        if (!user) {
+            throw new Error('User not authorized');
+        }
+        
+        const response = await fetch(`${backendUrl}/api/save_data`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_id: user.id,
+                ...data
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to save user data');
+        }
+        
+        return await response.json();
+        
+    } catch (error) {
+        console.error('Error saving user data:', error);
+    }
+}
+
+// Обновляем инициализацию игры
+async function initGame() {
+    const userData = await loadUserData();
+    
+    // Устанавливаем начальные значения
+    views = userData.views || 0;
+    subscribers = userData.subscribers || 0;
+    clickPower = userData.click_power || 1;
+    
+    // Обновляем интерфейс
+    viewsElement.textContent = formatNumber(views);
+    subscribersElement.textContent = formatNumber(subscribers);
+    
+    // Устанавливаем активный уровень
+    document.querySelectorAll('.level').forEach(levelEl => {
+        levelEl.classList.remove('active');
+        if (levelEl.textContent === userData.level) {
+            levelEl.classList.add('active');
+        }
+    });
+    
+    // Сохраняем данные при закрытии
+    tg.onEvent('viewportChanged', async () => {
+        if (tg.isClosing) {
+            await saveUserData({
+                views: views,
+                subscribers: subscribers,
+                click_power: clickPower,
+                level: document.querySelector('.level.active').textContent
+            });
+        }
+    });
+    
+    // Периодическое автосохранение (каждые 30 секунд)
+    setInterval(async () => {
+        await saveUserData({
+            views: views,
+            subscribers: subscribers,
+            click_power: clickPower,
+            level: document.querySelector('.level.active').textContent
+        });
+    }, 30000);
+}
+
+// Заменяем вызов tg.expand() на:
+tg.ready();
+initGame();
