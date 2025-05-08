@@ -502,3 +502,67 @@ body {
     from { opacity: 1; }
     to { opacity: 0; }
 }
+
+/* Добавляем в конец файла стилей */
+
+/* Стили для разных уровней улучшений */
+.upgrade-common {
+    border-left: 4px solid #6a11cb;
+}
+
+.upgrade-rare {
+    border-left: 4px solid #2575fc;
+}
+
+.upgrade-epic {
+    border-left: 4px solid #f72585;
+}
+
+.upgrade-tier-title {
+    font-weight: bold;
+    margin: 15px 0 5px;
+    text-align: left;
+    font-size: 16px;
+    color: #6a11cb;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.upgrade-rare + .upgrade-tier-title {
+    color: #2575fc;
+}
+
+.upgrade-epic + .upgrade-tier-title {
+    color: #f72585;
+}
+
+.upgrade-reqs {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-top: 3px;
+    color: #4cc9f0;
+}
+
+.prestige-btn {
+    background: linear-gradient(45deg, #f72585, #b5179e);
+    border: none;
+    border-radius: 12px;
+    padding: 12px;
+    color: white;
+    font-weight: bold;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.prestige-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(247, 37, 133, 0.4);
+}
+
+.prestige-btn:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
