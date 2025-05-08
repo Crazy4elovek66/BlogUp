@@ -1,156 +1,288 @@
-<!-- frame: Основа -->
-<div class="frame 240eabbf878b">
-  <!-- rect: Rectangle -->
-  <div class="shape rect rectangle-23fbe3958966">
-  </div>
-  <!-- group: Group -->
-  <div class="group group-2402738623cf">
-    <!-- rect: Rectangle -->
-    <div class="shape rect rectangle-23fd5e282db1">
-    </div>
-    <!-- text: POST -->
-    <div class="shape text post-23fd91b6a668">
-      <div class="text-node-html" id="html-text-node-28dc650e-7736-80bb-8006-23fd91b6a668" data-x="-414" data-y="417.00000000000057">
-        <div class="root rich-text root-0" style="display:flex;white-space:break-spaces;align-items:flex-start" xmlns="http://www.w3.org/1999/xhtml">
-          <div class="paragraph-set root-0-paragraph-set-0">
-            <p class="paragraph root-0-paragraph-set-0-paragraph-0" dir="ltr"><span class="text-node root-0-paragraph-set-0-paragraph-0-text-0" style="color:rgba(29, 24, 24, 1);text-transform:none;line-break:auto;overflow-wrap:initial;white-space:break-spaces;font-size:49px;text-rendering:geometricPrecision;caret-color:rgba(29, 24, 24, 1);text-decoration:none;--font-id:gfont-orbitron;--fills:[[&quot;^ &quot;,&quot;~:fill-color&quot;,&quot;#1d1818&quot;,&quot;~:fill-opacity&quot;,1]];letter-spacing:0px;font-family:&quot;Orbitron&quot;;font-style:normal;font-weight:500">POST</span></p>
-          </div>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Epic Clicker Game</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 400px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes rotate {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: #f8f8f8;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .score-container {
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .score {
+            font-size: 48px;
+            font-weight: 700;
+            color: #4cc9f0;
+            text-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .clicker {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(45deg, #f72585, #7209b7);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 20px auto;
+            box-shadow: 0 10px 20px rgba(114, 9, 183, 0.4);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .clicker:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 10px rgba(114, 9, 183, 0.6);
+        }
+
+        .clicker::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .clicker:active::after {
+            opacity: 1;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .stat {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 10px;
+            flex: 1;
+            margin: 0 5px;
+        }
+
+        .upgrades {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .upgrade {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .upgrade:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .upgrade-info {
+            text-align: left;
+        }
+
+        .upgrade-name {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .upgrade-desc {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(45deg, #4cc9f0, #4895ef);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            padding: 8px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upgrade-btn:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            cursor: not-allowed;
+        }
+
+        .upgrade-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(76, 201, 240, 0.4);
+        }
+
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .tab-container {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            opacity: 1;
+            border-bottom: 2px solid #4cc9f0;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Epic Clicker Game</h1>
+        
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('clicker')">Clicker</div>
+            <div class="tab" onclick="switchTab('upgrades')">Upgrades</div>
+            <div class="tab" onclick="switchTab('stats')">Stats</div>
         </div>
-      </div>
+        
+        <div class="tab-content active" id="clicker-tab">
+            <div class="score-container">
+                <div class="score" id="score">0</div>
+            </div>
+            
+            <button class="clicker" id="clicker">CLICK ME!</button>
+            
+            <div class="stats">
+                <div class="stat">CPS: <span id="cps">0</span></div>
+                <div class="stat">Total: <span id="total">0</span></div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="upgrades-tab">
+            <div class="upgrades" id="upgrades"></div>
+        </div>
+        
+        <div class="tab-content" id="stats-tab">
+            <div class="stat">Total clicks: <span id="total-clicks">0</span></div>
+            <div class="stat">Time played: <span id="time-played">0s</span></div>
+            <div class="stat">Highest CPS: <span id="highest-cps">0</span></div>
+        </div>
     </div>
-    <!-- rect: 4540244 -->
-    <div class="shape rect c-4540244-2401c1367a3d">
-    </div>
-  </div>
-  <!-- text: Новичок | Эксперт | Вирусный | Легенда -->
-  <div class="shape text 2403ac3d9843">
-    <svg width="356" xmlns="http://www.w3.org/2000/svg" height="105" id="screenshot-35d45df6-2421-80f4-8006-2403ac3d9843" viewBox="-530 196 356 105" style="-webkit-print-color-adjust::exact" xmlns:xlink="http://www.w3.org/1999/xlink" fill="none" version="1.1">
-      <style></style>
-      <g id="shape-35d45df6-2421-80f4-8006-2403ac3d9843">
-        <defs>
-          <filter id="filter-render-66" x="-0.10074626865671642" y="-1.588235294117647" width="1.2462686567164178" height="4.882352941176472" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">
-            <feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood>
-            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"></feColorMatrix>
-            <feOffset dx="4" dy="4"></feOffset>
-            <feGaussianBlur stdDeviation="2"></feGaussianBlur>
-            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0"></feColorMatrix>
-            <feBlend mode="normal" in2="BackgroundImageFix" result="filter_35d45df6-2421-80f4-8006-24043ddb9592"></feBlend>
-            <feBlend mode="normal" in="SourceGraphic" in2="filter_35d45df6-2421-80f4-8006-24043ddb9592" result="shape"></feBlend>
-          </filter>
-          <filter id="filter-shadow-render-66" x="-0.10074626865671642" y="-1.588235294117647" width="1.2462686567164178" height="4.882352941176472" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">
-            <feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood>
-            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"></feColorMatrix>
-            <feOffset dx="4" dy="4"></feOffset>
-            <feGaussianBlur stdDeviation="2"></feGaussianBlur>
-            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0"></feColorMatrix>
-            <feBlend mode="normal" in2="BackgroundImageFix" result="filter_35d45df6-2421-80f4-8006-24043ddb9592"></feBlend>
-            <feBlend mode="normal" in="SourceGraphic" in2="filter_35d45df6-2421-80f4-8006-24043ddb9592" result="shape"></feBlend>
-          </filter>
-        </defs>
-        <g transform="matrix(1.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000)" class="text-container" x="-498" y="228.00000000000009" width="268" height="17" filter="url(#filter-render-66)" rx="0" ry="0">
-          <defs>
-            <pattern patternUnits="userSpaceOnUse" x="-498" y="228.00000000000009" width="267.65625" height="17" id="fill-0-render-66-0">
-              <g>
-                <rect width="267.65625" height="17" style="fill:#ffffff;fill-opacity:1"></rect>
-              </g>
-            </pattern>
-          </defs>
-          <g class="fills" id="fills-35d45df6-2421-80f4-8006-2403ac3d9843"><text x="-498" y="244.00000000000009" dominant-baseline="ideographic" textLength="267.65625" lengthAdjust="spacingAndGlyphs" style="text-transform:none;font-family:Rubik;letter-spacing:normal;font-style:normal;font-weight:400;white-space:pre;font-size:14px;text-decoration:none solid rgb(255, 255, 255);direction:ltr;fill:#ffffff;fill-opacity:1">Новичок | Эксперт | Вирусный | Легенда</text></g>
-        </g>
-      </g>
-    </svg>
-  </div>
-  <!-- path: Path -->
-  <div class="shape path path-2402f95d6062">
-    <svg width="321.04" xmlns="http://www.w3.org/2000/svg" height="11.01" id="screenshot-35d45df6-2421-80f4-8006-2402f95d6062" viewBox="-527 216 321.04 11.01" style="-webkit-print-color-adjust::exact" xmlns:xlink="http://www.w3.org/1999/xlink" fill="none" version="1.1">
-      <g id="shape-35d45df6-2421-80f4-8006-2402f95d6062">
-        <defs></defs>
-        <g class="fills" id="fills-35d45df6-2421-80f4-8006-2402f95d6062">
-          <path d="M-522.000,221.000L-210.960,221.000"></path>
-        </g>
-        <g id="strokes-43a10c2a-33dc-8091-8006-2627de3eed56-35d45df6-2421-80f4-8006-2402f95d6062" class="strokes">
-          <g class="stroke-shape">
-            <defs></defs>
-            <path d="M-522.000,221.000L-210.960,221.000" style="fill:none;fill-opacity:none;stroke-width:2;stroke:#ffffff;stroke-opacity:1"></path>
-          </g>
-        </g>
-      </g>
-    </svg>
-  </div>
-  <!-- text: Просмотры: 1,234 -->
-  <div class="shape text 2404774d0026">
-    <svg width="301" xmlns="http://www.w3.org/2000/svg" height="117" id="screenshot-35d45df6-2421-80f4-8006-2404774d0026" viewBox="-507 116 301 117" style="-webkit-print-color-adjust::exact" xmlns:xlink="http://www.w3.org/1999/xlink" fill="none" version="1.1">
-      <style></style>
-      <g id="shape-35d45df6-2421-80f4-8006-2404774d0026">
-        <defs>
-          <filter id="filter-render-68" x="-0.12676056338028163" y="-0.9310344827586207" width="1.3098591549295773" height="3.2758620689655173" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">
-            <feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood>
-            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"></feColorMatrix>
-            <feOffset dx="4" dy="4"></feOffset>
-            <feGaussianBlur stdDeviation="2"></feGaussianBlur>
-            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0"></feColorMatrix>
-            <feBlend mode="normal" in2="BackgroundImageFix" result="filter_28dc650e-7736-80bb-8006-23fcdbe6d0d7"></feBlend>
-            <feBlend mode="normal" in="SourceGraphic" in2="filter_28dc650e-7736-80bb-8006-23fcdbe6d0d7" result="shape"></feBlend>
-          </filter>
-          <filter id="filter-shadow-render-68" x="-0.12676056338028163" y="-0.9310344827586207" width="1.3098591549295773" height="3.2758620689655173" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">
-            <feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood>
-            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"></feColorMatrix>
-            <feOffset dx="4" dy="4"></feOffset>
-            <feGaussianBlur stdDeviation="2"></feGaussianBlur>
-            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0"></feColorMatrix>
-            <feBlend mode="normal" in2="BackgroundImageFix" result="filter_28dc650e-7736-80bb-8006-23fcdbe6d0d7"></feBlend>
-            <feBlend mode="normal" in="SourceGraphic" in2="filter_28dc650e-7736-80bb-8006-23fcdbe6d0d7" result="shape"></feBlend>
-          </filter>
-        </defs>
-        <g transform="matrix(1.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000)" class="text-container" x="-475" y="148.00000000000009" width="213.0000000000001" height="29" filter="url(#filter-render-68)" rx="0" ry="0">
-          <defs>
-            <pattern patternUnits="userSpaceOnUse" x="-475" y="148.00000000000009" width="212.1875" height="28" id="fill-0-render-68-0">
-              <g>
-                <rect width="212.1875" height="28" style="fill:#ffffff;fill-opacity:1"></rect>
-              </g>
-            </pattern>
-          </defs>
-          <g class="fills" id="fills-35d45df6-2421-80f4-8006-2404774d0026"><text x="-475" y="176.00000000000009" dominant-baseline="ideographic" textLength="212.1875" lengthAdjust="spacingAndGlyphs" style="text-transform:none;font-family:Rubik;letter-spacing:normal;font-style:normal;font-weight:500;white-space:pre;font-size:24px;text-decoration:none solid rgb(255, 255, 255);direction:ltr;fill:#ffffff;fill-opacity:1">Просмотры: 1,234</text></g>
-        </g>
-      </g>
-    </svg>
-  </div>
-  <!-- text: Подписчики: 1,234 -->
-  <div class="shape text 23fc6dddbc9e">
-    <svg width="311" xmlns="http://www.w3.org/2000/svg" height="117" id="screenshot-28dc650e-7736-80bb-8006-23fc6dddbc9e" viewBox="-507 148 311 117" style="-webkit-print-color-adjust::exact" xmlns:xlink="http://www.w3.org/1999/xlink" fill="none" version="1.1">
-      <style></style>
-      <g id="shape-28dc650e-7736-80bb-8006-23fc6dddbc9e">
-        <defs>
-          <filter id="filter-render-69" x="-0.1210762331838565" y="-0.9310344827586207" width="1.295964125560538" height="3.2758620689655173" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">
-            <feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood>
-            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"></feColorMatrix>
-            <feOffset dx="4" dy="4"></feOffset>
-            <feGaussianBlur stdDeviation="2"></feGaussianBlur>
-            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0"></feColorMatrix>
-            <feBlend mode="normal" in2="BackgroundImageFix" result="filter_28dc650e-7736-80bb-8006-23fcdbe6d0d7"></feBlend>
-            <feBlend mode="normal" in="SourceGraphic" in2="filter_28dc650e-7736-80bb-8006-23fcdbe6d0d7" result="shape"></feBlend>
-          </filter>
-          <filter id="filter-shadow-render-69" x="-0.1210762331838565" y="-0.9310344827586207" width="1.295964125560538" height="3.2758620689655173" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">
-            <feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood>
-            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"></feColorMatrix>
-            <feOffset dx="4" dy="4"></feOffset>
-            <feGaussianBlur stdDeviation="2"></feGaussianBlur>
-            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0"></feColorMatrix>
-            <feBlend mode="normal" in2="BackgroundImageFix" result="filter_28dc650e-7736-80bb-8006-23fcdbe6d0d7"></feBlend>
-            <feBlend mode="normal" in="SourceGraphic" in2="filter_28dc650e-7736-80bb-8006-23fcdbe6d0d7" result="shape"></feBlend>
-          </filter>
-        </defs>
-        <g transform="matrix(1.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000)" class="text-container" x="-475" y="180.00000000000009" width="223" height="29" filter="url(#filter-render-69)" rx="0" ry="0">
-          <defs>
-            <pattern patternUnits="userSpaceOnUse" x="-475" y="180.00000000000009" width="222.734375" height="28" id="fill-0-render-69-0">
-              <g>
-                <rect width="222.734375" height="28" style="fill:#ffffff;fill-opacity:1"></rect>
-              </g>
-            </pattern>
-          </defs>
-          <g class="fills" id="fills-28dc650e-7736-80bb-8006-23fc6dddbc9e"><text x="-475" y="208.00000000000009" dominant-baseline="ideographic" textLength="222.734375" lengthAdjust="spacingAndGlyphs" style="text-transform:none;font-family:Rubik;letter-spacing:normal;font-style:normal;font-weight:500;white-space:pre;font-size:24px;text-decoration:none solid rgb(255, 255, 255);direction:ltr;fill:#ffffff;fill-opacity:1">Подписчики: 1,234</text></g>
-        </g>
-      </g>
-    </svg>
-  </div>
-</div>
+    
+    <div class="particles" id="particles"></div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
