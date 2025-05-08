@@ -68,7 +68,7 @@
             }
         }
 
-        h1 {
+        h1, h2 {
             margin: 0 0 10px;
             font-size: 24px;
             font-weight: 700;
@@ -130,6 +130,10 @@
 
         .views .stat-value {
             color: #f72585;
+        }
+
+        .prestige .stat-value {
+            color: #ff9f1c;
         }
 
         .clicker {
@@ -220,6 +224,10 @@
             display: block;
         }
 
+        .upgrades-container {
+            width: 100%;
+        }
+
         .upgrades {
             display: grid;
             grid-template-columns: 1fr;
@@ -241,6 +249,10 @@
             transition: all 0.3s ease;
         }
 
+        .upgrade.max-level {
+            border-color: #4cc9f0;
+        }
+
         .upgrade:hover {
             background: rgba(255, 255, 255, 0.1);
         }
@@ -254,6 +266,22 @@
             align-items: center;
             justify-content: center;
             font-size: 18px;
+            position: relative;
+        }
+
+        .upgrade-level {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            background: var(--accent);
+            color: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .upgrade-info {
@@ -272,11 +300,25 @@
             opacity: 0.7;
         }
 
+        .upgrade-progress {
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .upgrade-progress .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+        }
+
         .upgrade-price {
             font-weight: 600;
             font-size: 14px;
             color: #4cc9f0;
             white-space: nowrap;
+            margin-right: 10px;
         }
 
         .upgrade-btn {
@@ -301,6 +343,25 @@
         .upgrade-btn:not(:disabled):hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 10px rgba(106, 17, 203, 0.4);
+        }
+
+        .prestige-btn {
+            background: linear-gradient(45deg, #ff9f1c, #ff4d4d);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .prestige-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 159, 28, 0.4);
         }
 
         .notification {
@@ -422,9 +483,10 @@
             </button>
         </div>
         
-        <div class="upgrades-container">
-            <h2>Медиа-Улучшения</h2>
-            <div class="upgrades-grid">
+        <div class="tab-content" id="upgrades-tab">
+            <div class="upgrades-container">
+                <h2>Медиа-Улучшения</h2>
+                <div class="upgrades" id="upgrades"></div>
             </div>
         </div>
         
@@ -452,6 +514,26 @@
                 </div>
                 <div class="stat-value" id="max-subscribers">0</div>
             </div>
+
+            <div class="stat prestige">
+                <div class="stat-label">
+                    <i class="fas fa-arrow-up"></i>
+                    Престиж-очки
+                </div>
+                <div class="stat-value" id="prestige-points">0</div>
+            </div>
+
+            <div class="stat prestige">
+                <div class="stat-label">
+                    <i class="fas fa-star"></i>
+                    Бонус престижа
+                </div>
+                <div class="stat-value" id="prestige-bonus">0%</div>
+            </div>
+
+            <button class="prestige-btn" id="prestige-btn">
+                <i class="fas fa-arrow-up"></i> Престиж
+            </button>
         </div>
     </div>
     
