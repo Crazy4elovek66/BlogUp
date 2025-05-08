@@ -3,35 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Epic Clicker Game</title>
+    <title>Медиа Карьера</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary: #6a11cb;
+            --secondary: #2575fc;
+            --accent: #ff4d4d;
+            --text: #f8f9fa;
+            --bg: #121212;
+            --card-bg: rgba(30, 30, 30, 0.7);
+        }
+
         body {
             font-family: 'Rubik', sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            color: #fff;
-            height: 100vh;
+            background: linear-gradient(135deg, var(--bg), #1a1a2e);
+            color: var(--text);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             text-align: center;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
         .container {
-            width: 90%;
-            max-width: 400px;
+            width: 95%;
+            max-width: 450px;
             padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--card-bg);
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin: 20px 0;
             position: relative;
             overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .container::before {
@@ -41,7 +52,12 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            background: linear-gradient(
+                to bottom right,
+                rgba(106, 17, 203, 0.1),
+                rgba(37, 117, 252, 0.1),
+                transparent 70%
+            );
             animation: rotate 20s linear infinite;
             z-index: -1;
         }
@@ -53,30 +69,73 @@
         }
 
         h1 {
-            margin-top: 0;
+            margin: 0 0 10px;
             font-size: 24px;
             font-weight: 700;
-            color: #f8f8f8;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
 
-        .score-container {
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .stats {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
             margin: 20px 0;
-            position: relative;
         }
 
-        .score {
-            font-size: 48px;
+        .stat {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 22px;
             font-weight: 700;
+        }
+
+        .subscribers .stat-value {
             color: #4cc9f0;
-            text-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
-            transition: all 0.3s ease;
+        }
+
+        .views .stat-value {
+            color: #f72585;
         }
 
         .clicker {
-            width: 150px;
-            height: 150px;
-            background: linear-gradient(45deg, #f72585, #7209b7);
+            width: 160px;
+            height: 160px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
             border: none;
             border-radius: 50%;
             color: white;
@@ -84,87 +143,144 @@
             font-weight: bold;
             cursor: pointer;
             margin: 20px auto;
-            box-shadow: 0 10px 20px rgba(114, 9, 183, 0.4);
+            box-shadow: 0 10px 25px rgba(106, 17, 203, 0.4);
             transition: all 0.2s ease;
             position: relative;
             overflow: hidden;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            gap: 5px;
         }
 
         .clicker:active {
             transform: scale(0.95);
-            box-shadow: 0 5px 10px rgba(114, 9, 183, 0.6);
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.6);
         }
 
-        .clicker::after {
-            content: '';
-            position: absolute;
+        .clicker-icon {
+            font-size: 40px;
+        }
+
+        .clicker-text {
+            font-size: 18px;
+        }
+
+        .progress-container {
             width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
         }
 
-        .clicker:active::after {
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+
+        .tab-container {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .tab.active {
             opacity: 1;
         }
 
-        .stats {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-            font-size: 14px;
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
         }
 
-        .stat {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px 12px;
-            border-radius: 10px;
-            flex: 1;
-            margin: 0 5px;
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         .upgrades {
-            margin-top: 20px;
-            max-height: 200px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 15px;
+            max-height: 300px;
             overflow-y: auto;
             padding-right: 5px;
         }
 
         .upgrade {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 10px;
-            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 12px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
             transition: all 0.3s ease;
         }
 
         .upgrade:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .upgrade-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
         }
 
         .upgrade-info {
+            flex: 1;
             text-align: left;
         }
 
         .upgrade-name {
             font-weight: 500;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
+            font-size: 15px;
         }
 
         .upgrade-desc {
             font-size: 12px;
-            opacity: 0.8;
+            opacity: 0.7;
+        }
+
+        .upgrade-price {
+            font-weight: 600;
+            font-size: 14px;
+            color: #4cc9f0;
+            white-space: nowrap;
         }
 
         .upgrade-btn {
-            background: linear-gradient(45deg, #4cc9f0, #4895ef);
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
             border: none;
             border-radius: 8px;
             color: white;
@@ -172,6 +288,9 @@
             font-size: 14px;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .upgrade-btn:disabled {
@@ -181,24 +300,62 @@
 
         .upgrade-btn:not(:disabled):hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 10px rgba(76, 201, 240, 0.4);
+            box-shadow: 0 5px 10px rgba(106, 17, 203, 0.4);
         }
 
-        .particles {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(76, 201, 240, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 500;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2s forwards;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .particle {
+        @keyframes slideIn {
+            from {
+                top: -50px;
+                opacity: 0;
+            }
+            to {
+                top: 20px;
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                top: -50px;
+            }
+        }
+
+        .floating-icon {
             position: absolute;
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 50%;
+            font-size: 20px;
+            opacity: 0;
             pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
         }
 
         /* Custom scrollbar */
@@ -219,55 +376,50 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.5);
         }
-
-        .tab-container {
-            display: flex;
-            margin-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .tab {
-            padding: 10px 15px;
-            cursor: pointer;
-            opacity: 0.7;
-            transition: all 0.3s ease;
-        }
-
-        .tab.active {
-            opacity: 1;
-            border-bottom: 2px solid #4cc9f0;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Epic Clicker Game</h1>
+        <h1>Медиа Карьера</h1>
         
-        <div class="tab-container">
-            <div class="tab active" onclick="switchTab('clicker')">Clicker</div>
-            <div class="tab" onclick="switchTab('upgrades')">Upgrades</div>
-            <div class="tab" onclick="switchTab('stats')">Stats</div>
+        <div class="avatar">
+            <i class="fas fa-user"></i>
         </div>
         
-        <div class="tab-content active" id="clicker-tab">
-            <div class="score-container">
-                <div class="score" id="score">0</div>
-            </div>
-            
-            <button class="clicker" id="clicker">CLICK ME!</button>
-            
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('main')">Главная</div>
+            <div class="tab" onclick="switchTab('upgrades')">Улучшения</div>
+            <div class="tab" onclick="switchTab('stats')">Статистика</div>
+        </div>
+        
+        <div class="tab-content active" id="main-tab">
             <div class="stats">
-                <div class="stat">CPS: <span id="cps">0</span></div>
-                <div class="stat">Total: <span id="total">0</span></div>
+                <div class="stat subscribers">
+                    <div class="stat-label">
+                        <i class="fas fa-users"></i>
+                        Подписчики
+                    </div>
+                    <div class="stat-value" id="subscribers">0</div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="subs-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="stat views">
+                    <div class="stat-label">
+                        <i class="fas fa-eye"></i>
+                        Просмотры
+                    </div>
+                    <div class="stat-value" id="views">0</div>
+                </div>
             </div>
+            
+            <button class="clicker" id="clicker">
+                <div class="clicker-icon">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="clicker-text">Пост</div>
+            </button>
         </div>
         
         <div class="tab-content" id="upgrades-tab">
@@ -275,13 +427,31 @@
         </div>
         
         <div class="tab-content" id="stats-tab">
-            <div class="stat">Total clicks: <span id="total-clicks">0</span></div>
-            <div class="stat">Time played: <span id="time-played">0s</span></div>
-            <div class="stat">Highest CPS: <span id="highest-cps">0</span></div>
+            <div class="stat">
+                <div class="stat-label">
+                    <i class="fas fa-mouse-pointer"></i>
+                    Всего кликов
+                </div>
+                <div class="stat-value" id="total-clicks">0</div>
+            </div>
+            
+            <div class="stat">
+                <div class="stat-label">
+                    <i class="fas fa-clock"></i>
+                    Время в игре
+                </div>
+                <div class="stat-value" id="time-played">0s</div>
+            </div>
+            
+            <div class="stat">
+                <div class="stat-label">
+                    <i class="fas fa-trophy"></i>
+                    Рекорд подписчиков
+                </div>
+                <div class="stat-value" id="max-subscribers">0</div>
+            </div>
         </div>
     </div>
-    
-    <div class="particles" id="particles"></div>
     
     <script src="app.js"></script>
 </body>
