@@ -1,3 +1,6 @@
+from flask import Flask
+from flask import Flask, render_template
+app = Flask(__name__)  # ← Это ключевая строка!
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 import logging
