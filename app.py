@@ -1,107 +1,72 @@
 from flask import Flask, request, jsonify
 import psycopg2
-from psycopg2.extras import DictCursor
 import os
 
 app = Flask(__name__)
 
-# Подключение к Postgres
+# Подключение к PostgreSQL на Railway
 def get_db_connection():
     conn = psycopg2.connect(
-        host=os.getenv('PGHOST'),
-        database=os.getenv('PGDATABASE'),
-        user=os.getenv('PGUSER'),
-        password=os.getenv('PGPASSWORD'),
-        port=os.getenv('PGPORT')
+        host=os.getenv('DB_HOST'),
+        database=os.getenv('DB_NAME'),
+        user=os.getenv('DB_USER'),
+        password=os.getenv('DB_PASSWORD'),
+        port=os.getenv('DB_PORT')
     )
     return conn
 
-# Маршрут для получения данных пользователя
-@app.route('/api/user_data', methods=['GET'])
-def get_user_data():
+@app.route('/init')
+def init_user():
     user_id = request.args.get('user_id')
-    if not user_id:
-        return jsonify({'error': 'user_id is required'}), 400
-    
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=DictCursor)
-    
-    try:
-        # Проверяем, есть ли пользователь в базе
-        cur.execute(
-            "SELECT * FROM user_progress WHERE user_id = %s",
-            (user_id,)
-        )
-        user_data = cur.fetchone()
-        
-        if not user_data:
-            # Создаем новую запись для нового пользователя
-            cur.execute(
-                "INSERT INTO user_progress (user_id) VALUES (%s) RETURNING *",
-                (user_id,)
-            )
-            user_data = cur.fetchone()
-            conn.commit()
-        
-        return jsonify({
-            'views': user_data['views'],
-            'subscribers': user_data['subscribers'],
-            'click_power': user_data['click_power'],
-            'level': user_data['level']
-        })
-        
-    except Exception as e:
-        conn.rollback()
-        return jsonify({'error': str(e)}), 500
-    finally:
-        cur.close()
-        conn.close()
-
-# Маршрут для сохранения данных пользователя
-@app.route('/api/save_data', methods=['POST'])
-def save_user_data():
-    data = request.json
-    user_id = data.get('user_id')
-    
-    if not user_id:
-        return jsonify({'error': 'user_id is required'}), 400
-    
     conn = get_db_connection()
     cur = conn.cursor()
     
-    try:
-        cur.execute(
-            """
-            INSERT INTO user_progress (user_id, views, subscribers, click_power, level)
-            VALUES (%s, %s, %s, %s, %s)
-            ON CONFLICT (user_id) DO UPDATE SET
-                views = EXCLUDED.views,
-                subscribers = EXCLUDED.subscribers,
-                click_power = EXCLUDED.click_power,
-                level = EXCLUDED.level,
-                last_updated = NOW()
-            """,
-            (
-                user_id,
-                data.get('views', 0),
-                data.get('subscribers', 0),
-                data.get('click_power', 1),
-                data.get('level', 'Новичок')
-            )
-        )
-        conn.commit()
-        return jsonify({'status': 'success'})
-        
-    except Exception as e:
-        conn.rollback()
-        return jsonify({'error': str(e)}), 500
-    finally:
-        cur.close()
-        conn.close()
+    # Проверяем существование пользователя
+    cur.execute('SELECT views, level FROM users WHERE user_id = %s', (user_id,))
+    user = cur.fetchone()
+    
+    if not user:
+        # Создаем нового пользователя
+        cur.execute('INSERT INTO users (user_id) VALUES (%s) RETURNING views, level', (user_id,))
+        user = cur.fetchone()
+    
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return jsonify({
+        'views': user[0],
+        'level': user[1]
+    })
+
+@app.route('/add_view', methods=['POST'])
+def add_view():
+    user_id = request.json.get('user_id')
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # Увеличиваем просмотры и проверяем уровень
+    cur.execute('''
+        UPDATE users 
+        SET views = views + 1,
+            level = CASE 
+                WHEN views >= 100 THEN 3
+                WHEN views >= 50 THEN 2
+                ELSE 1
+            END
+        WHERE user_id = %s
+        RETURNING views, level
+    ''', (user_id,))
+    
+    updated = cur.fetchone()
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return jsonify({
+        'views': updated[0],
+        'level': updated[1]
+    })
 
 if __name__ == '__main__':
-    # Для локального тестирования
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
-else:
-    # Для продакшена на Railway
-    gunicorn_app = app
+    app.run()
