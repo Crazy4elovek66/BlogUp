@@ -566,3 +566,24 @@ body {
     transform: none;
     box-shadow: none;
 }
+
+.click-effect {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: clickAnimation 1s ease-out;
+}
+
+@keyframes clickAnimation {
+    from {
+        transform: scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: scale(3);
+        opacity: 0;
+    }
+}
