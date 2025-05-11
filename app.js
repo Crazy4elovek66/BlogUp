@@ -141,25 +141,45 @@ const game = {
     prestigeUnlocked: false
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // Получаем параметры из URL Telegram WebApp
-    const tgParams = new URLSearchParams(window.location.hash.substring(1));
-    const user_id = tgParams.get('user')?.id || Math.floor(Math.random() * 1000000);
+document.addEventListener('DOMContentLoaded', function() {
+    // Получаем user_id из Telegram WebApp
+    const user_id = Telegram.WebApp.initDataUnsafe.user?.id.toString();
     
-    // Инициализация пользователя
-    let userData = await fetch(`/init?user_id=${user_id}`).then(r => r.json());
-    updateUI(userData);
-    
+    // Инициализируем пользователя
+    fetch('/init_user', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({user_id: user_id})
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('views-count').innerText = data.views;
+    });
+
     // Обработчик клика
-    document.getElementById('clickButton').addEventListener('click', async () => {
-        userData = await fetch('/add_view', {
+    document.getElementById('click-button').addEventListener('click', function() {
+        fetch('/add_view', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id })
-        }).then(r => r.json());
-        
-        updateUI(userData);
-        animateClick();
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({user_id: user_id})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                document.getElementById('views-count').innerText = data.views;
+                // Анимация клика
+                const clickEffect = document.createElement('div');
+                clickEffect.className = 'click-effect';
+                clickEffect.style.left = (event.clientX - 10) + 'px';
+                clickEffect.style.top = (event.clientY - 10) + 'px';
+                document.body.appendChild(clickEffect);
+                setTimeout(() => clickEffect.remove(), 1000);
+            }
+        });
     });
 });
 
