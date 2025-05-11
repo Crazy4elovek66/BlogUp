@@ -1,8 +1,26 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
+from database import db, User
 import psycopg2
 import os
 
-app = Flask(__name__)
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/init_user', methods=['POST'])
+def init_user():
+    data = request.json
+    user_id = data.get('user_id')
+    
+    user = User.query.filter_by(user_id=user_id).first()
+    if not user:
+        user = User(user_id=user_id)
+        db.session.add(user)
+        db.session.commit()
+    
+    return jsonify({'views': user.views})
+
+@app.route('/add_view', methods=['POST'])
 
 # Подключение к PostgreSQL на Railway
 def get_db_connection():
@@ -41,27 +59,15 @@ def init_user():
 
 @app.route('/add_view', methods=['POST'])
 def add_view():
-    user_id = request.json.get('user_id')
-    conn = get_db_connection()
-    cur = conn.cursor()
+    data = request.json
+    user_id = data.get('user_id')
     
-    # Увеличиваем просмотры и проверяем уровень
-    cur.execute('''
-        UPDATE users 
-        SET views = views + 1,
-            level = CASE 
-                WHEN views >= 100 THEN 3
-                WHEN views >= 50 THEN 2
-                ELSE 1
-            END
-        WHERE user_id = %s
-        RETURNING views, level
-    ''', (user_id,))
-    
-    updated = cur.fetchone()
-    conn.commit()
-    cur.close()
-    conn.close()
+    user = User.query.filter_by(user_id=user_id).first()
+    if user:
+        user.views += 1
+        db.session.commit()
+        return jsonify({'success': True, 'views': user.views})
+    return jsonify({'success': False})
     
     return jsonify({
         'views': updated[0],
@@ -69,4 +75,6 @@ def add_view():
     })
 
 if __name__ == '__main__':
-    app.run()
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
