@@ -141,7 +141,42 @@ const game = {
     prestigeUnlocked: false
 };
 
-// ... (остальной код остается таким же до функции buyUpgrade)
+document.addEventListener('DOMContentLoaded', async () => {
+    // Получаем параметры из URL Telegram WebApp
+    const tgParams = new URLSearchParams(window.location.hash.substring(1));
+    const user_id = tgParams.get('user')?.id || Math.floor(Math.random() * 1000000);
+    
+    // Инициализация пользователя
+    let userData = await fetch(`/init?user_id=${user_id}`).then(r => r.json());
+    updateUI(userData);
+    
+    // Обработчик клика
+    document.getElementById('clickButton').addEventListener('click', async () => {
+        userData = await fetch('/add_view', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id })
+        }).then(r => r.json());
+        
+        updateUI(userData);
+        animateClick();
+    });
+});
+
+function updateUI(data) {
+    document.getElementById('viewsCount').textContent = data.views;
+    document.getElementById('level').textContent = `Уровень: ${data.level}`;
+    
+    // Пример изменения стиля в зависимости от уровня
+    const button = document.getElementById('clickButton');
+    button.className = `click-button level-${data.level}`;
+}
+
+function animateClick() {
+    const button = document.getElementById('clickButton');
+    button.style.transform = 'scale(0.95)';
+    setTimeout(() => button.style.transform = 'scale(1)', 100);
+}
 
 function buyUpgrade(upgradeId) {
     const upgrade = game.upgrades.find(u => u.id === upgradeId);
