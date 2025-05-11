@@ -7,6 +7,10 @@ import logging
 import os
 from dotenv import load_dotenv
 
+@app.route('/')
+def index():
+    return render_template('index.html', app_name="BlogUp")
+
 load_dotenv()
 
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
