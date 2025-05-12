@@ -141,244 +141,224 @@ const game = {
     prestigeUnlocked: false
 };
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Получаем user_id из Telegram WebApp
-    const user_id = Telegram.WebApp.initDataUnsafe.user?.id.toString();
-    
-    // Инициализируем пользователя
-    fetch('/init_user', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({user_id: user_id})
-    })
-    .then(response => response.json())
-    .then(data => {
-        document.getElementById('views-count').innerText = data.views;
-    });
+// DOM Elements
+const clickButton = document.getElementById('clicker');
+const upgradesEl = document.getElementById('upgrades');
+const subscribersEl = document.getElementById('subscribers');
+const viewsEl = document.getElementById('views');
+const totalClicksEl = document.getElementById('total-clicks');
+const timePlayedEl = document.getElementById('time-played');
+const maxSubscribersEl = document.getElementById('max-subscribers');
+const prestigePointsEl = document.getElementById('prestige-points');
+const prestigeBonusEl = document.getElementById('prestige-bonus');
+const subsProgressEl = document.getElementById('subs-progress');
+const prestigeBtn = document.getElementById('prestige-btn');
 
-    // Обработчик клика
-    document.getElementById('click-button').addEventListener('click', function() {
-        fetch('/add_view', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({user_id: user_id})
-        })
-        .then(response => response.json())
-        .then(data => {
-            if(data.success) {
-                document.getElementById('views-count').innerText = data.views;
-                // Анимация клика
-                const clickEffect = document.createElement('div');
-                clickEffect.className = 'click-effect';
-                clickEffect.style.left = (event.clientX - 10) + 'px';
-                clickEffect.style.top = (event.clientY - 10) + 'px';
-                document.body.appendChild(clickEffect);
-                setTimeout(() => clickEffect.remove(), 1000);
-            }
-        });
-    });
-});
-
-function updateUI(data) {
-    document.getElementById('viewsCount').textContent = data.views;
-    document.getElementById('level').textContent = `Уровень: ${data.level}`;
+// Initialize the game
+function initGame() {
+    // Load saved game if exists
+    loadGame();
     
-    // Пример изменения стиля в зависимости от уровня
-    const button = document.getElementById('clickButton');
-    button.className = `click-button level-${data.level}`;
+    // Set up event listeners
+    clickButton.addEventListener('click', handleClick);
+    prestigeBtn.addEventListener('click', prestige);
+    
+    // Start game loop
+    setInterval(gameLoop, 1000);
+    
+    // Initial render
+    updateUI();
+    renderUpgrades();
 }
 
+// Game loop
+function gameLoop() {
+    // Update time played
+    updateTimePlayed();
+    
+    // Process auto-upgrades
+    processAutoUpgrades();
+    
+    // Save game periodically
+    if (game.clicks % 10 === 0) {
+        saveGame();
+    }
+}
+
+function handleClick() {
+    game.clicks++;
+    
+    // Base views gain
+    let viewsGain = 1;
+    
+    // Apply prestige bonus if available
+    const prestigeBonus = 1 + (game.prestige * (game.upgrades.find(u => u.id === 9)?.effect || 0);
+    
+    // Check for viral video chance
+    if (Math.random() < 0.005 * (game.upgrades.find(u => u.id === 2)?.owned * prestigeBonus) {
+        const viralGain = Math.floor(Math.random() * 5) + 1;
+        game.subscribers += viralGain;
+        createNotification(`Вирусный ролик! +${viralGain} подписчиков`, 'fas fa-virus');
+    }
+    
+    // Check for hashtag bonus (upgrade 7)
+    if (Math.random() < 0.1 * (game.upgrades.find(u => u.id === 7)?.owned * prestigeBonus)) {
+        viewsGain *= 10;
+    }
+    
+    // Add views
+    game.views += viewsGain;
+    
+    // Calculate subscriber chance
+    let subChance = 0.001;
+    subChance += 0.0002 * (game.upgrades.find(u => u.id === 1)?.owned * prestigeBonus;
+    
+    // Apply collaboration bonus (upgrade 4)
+    if (game.upgrades.find(u => u.id === 4)?.owned) {
+        subChance *= 2;
+    }
+    
+    if (Math.random() < subChance) {
+        game.subscribers++;
+        if (game.subscribers > game.maxSubscribers) {
+            game.maxSubscribers = game.subscribers;
+        }
+    }
+    
+    // Update progress bar
+    game.subsProgress = Math.min((game.subscribers % 100) / 100 * 100, 100);
+    
+    // Check for prestige unlock
+    if (game.subscribers >= 20000 && !game.prestigeUnlocked && game.upgrades.find(u => u.id === 9)?.owned) {
+        game.prestigeUnlocked = true;
+        createNotification("Престиж разблокирован!", 'fas fa-flag');
+    }
+    
+    // Update UI
+    updateUI();
+    animateClick();
+}
+
+function updateUI() {
+    subscribersEl.textContent = formatNumber(game.subscribers);
+    viewsEl.textContent = formatNumber(game.views);
+    totalClicksEl.textContent = formatNumber(game.clicks);
+    maxSubscribersEl.textContent = formatNumber(game.maxSubscribers);
+    prestigePointsEl.textContent = formatNumber(game.prestige);
+    prestigeBonusEl.textContent = `${Math.round((1 + (game.prestige * (game.upgrades.find(u => u.id === 9)?.effect || 0) - 1) * 100}%`;
+    subsProgressEl.style.width = `${game.subsProgress}%`;
+    
+    // Update upgrade buttons
+    renderUpgrades();
+}
+
+function updateTimePlayed() {
+    const seconds = Math.floor((Date.now() - game.startTime) / 1000);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    timePlayedEl.textContent = `${hours > 0 ? hours + 'h ' : ''}${minutes > 0 ? minutes + 'm ' : ''}${secs}s`;
+}
+
+function processAutoUpgrades() {
+    const prestigeBonus = 1 + (game.prestige * (game.upgrades.find(u => u.id === 9)?.effect || 0));
+    
+    // Process ad upgrades (3 and 6)
+    const adUpgrade = game.upgrades.find(u => u.id === 3);
+    const sponsorUpgrade = game.upgrades.find(u => u.id === 6);
+    if (adUpgrade?.owned) {
+        let adGain = adUpgrade.effect * adUpgrade.owned;
+        if (sponsorUpgrade?.owned) {
+            adGain *= sponsorUpgrade.effect * sponsorUpgrade.owned;
+        }
+        game.views += adGain * prestigeBonus;
+    }
+    
+    // Process merch upgrade (5)
+    const merchUpgrade = game.upgrades.find(u => u.id === 5);
+    if (merchUpgrade?.owned) {
+        game.views += game.subscribers * merchUpgrade.effect * merchUpgrade.owned * prestigeBonus;
+    }
+    
+    // Process affiliate program (8)
+    const affiliateUpgrade = game.upgrades.find(u => u.id === 8);
+    if (affiliateUpgrade?.owned) {
+        if (Math.random() < 0.01 * affiliateUpgrade.effect * affiliateUpgrade.owned * prestigeBonus) {
+            game.subscribers++;
+            if (game.subscribers > game.maxSubscribers) {
+                game.maxSubscribers = game.subscribers;
+            }
+        }
+    }
+    
+    updateUI();
+}
+
+// Format numbers for display
+function formatNumber(num) {
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(1) + 'M';
+    }
+    if (num >= 1000) {
+        return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toString();
+}
+
+// Create notification
+function createNotification(message, icon) {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.innerHTML = `<i class="${icon}"></i> ${message}`;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Click animation
 function animateClick() {
-    const button = document.getElementById('clickButton');
-    button.style.transform = 'scale(0.95)';
-    setTimeout(() => button.style.transform = 'scale(1)', 100);
+    clickButton.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+        clickButton.style.transform = 'scale(1)';
+    }, 100);
 }
 
-function buyUpgrade(upgradeId) {
-    const upgrade = game.upgrades.find(u => u.id === upgradeId);
-    
-    // Проверка требований к другим улучшениям
-    if (upgrade.requiredUpgrades) {
-        const hasAllRequirements = upgrade.requiredUpgrades.every(reqId => {
-            const reqUpgrade = game.upgrades.find(u => u.id === reqId);
-            return reqUpgrade && reqUpgrade.owned > 0;
-        });
-        
-        if (!hasAllRequirements) {
-            createNotification(`Требуются другие улучшения!`, 'fas fa-lock');
-            return;
-        }
-    }
-    
-    // Проверка валюты
-    let canAfford = false;
-    if (upgrade.currency === "views" && game.views >= upgrade.price) {
-        canAfford = true;
-        game.views -= upgrade.price;
-    } else if (upgrade.currency === "subscribers" && game.subscribers >= upgrade.price) {
-        canAfford = true;
-        game.subscribers -= upgrade.price;
-    } else if (upgrade.currency === "prestige" && game.prestige >= upgrade.price) {
-        canAfford = true;
-        game.prestige -= upgrade.price;
-    }
-    
-    if (canAfford) {
-        upgrade.owned++;
-        upgrade.price = Math.floor(upgrade.basePrice * Math.pow(1.5, upgrade.owned));
-        
-        // Применяем эффекты улучшений
-        if (upgrade.id === 3 || upgrade.id === 6) {
-            // Очищаем старые авто-улучшения этого типа
-            game.autoUpgrades = game.autoUpgrades.filter(au => au.id !== 3);
-            
-            // Рассчитываем множитель эффекта
-            let effect = upgrade.effect;
-            if (upgrade.id === 6) effect *= game.upgrades.find(u => u.id === 3).owned;
-            
-            game.autoUpgrades.push({
-                id: upgrade.id,
-                interval: setInterval(() => {
-                    game.views += effect;
-                    updateUI();
-                }, 1000)
-            });
-        }
-        
-        if (upgrade.id === 5) {
-            game.autoUpgrades = game.autoUpgrades.filter(au => au.id !== 5);
-            game.autoUpgrades.push({
-                id: upgrade.id,
-                interval: setInterval(() => {
-                    game.views += game.subscribers * upgrade.effect * (1 + game.prestige * game.upgrades.find(u => u.id === 9)?.effect || 1);
-                    updateUI();
-                }, 1000)
-            });
-        }
-        
-        if (upgrade.id === 8) {
-            game.autoUpgrades = game.autoUpgrades.filter(au => au.id !== 8);
-            game.autoUpgrades.push({
-                id: upgrade.id,
-                interval: setInterval(() => {
-                    if (Math.random() < 0.01 * upgrade.effect * (1 + game.prestige * game.upgrades.find(u => u.id === 9)?.effect || 1)) {
-                        game.subscribers += 1;
-                        updateUI();
-                    }
-                }, 1000)
-            });
-        }
-        
-        if (upgrade.id === 9 && !game.prestigeUnlocked) {
-            game.prestigeUnlocked = true;
-            createNotification("Престиж разблокирован! Можно переродиться.", 'fas fa-flag');
-        }
-        
-        createNotification(`Улучшение куплено: ${upgrade.name}`, upgrade.icon);
-        updateUI();
-        renderUpgrades();
-    } else {
-        createNotification(`Недостаточно ${upgrade.currency === "views" ? "просмотров" : upgrade.currency === "subscribers" ? "подписчиков" : "престижа"}!`, 'fas fa-times');
-    }
+// Save/load game functions
+function saveGame() {
+    localStorage.setItem('mediaCareerSave', JSON.stringify(game));
 }
 
-function renderUpgrades() {
-    upgradesEl.innerHTML = '';
-    
-    // Группируем улучшения по редкости
-    const groupedUpgrades = {
-        common: [],
-        rare: [],
-        epic: []
-    };
-    
-    game.upgrades.forEach(upgrade => {
-        if (game.subscribers >= upgrade.unlockAt) {
-            groupedUpgrades[upgrade.tier].push(upgrade);
-        }
-    });
-    
-    // Рендерим каждую группу с заголовком
-    for (const [tier, upgrades] of Object.entries(groupedUpgrades)) {
-        if (upgrades.length === 0) continue;
+function loadGame() {
+    const savedGame = localStorage.getItem('mediaCareerSave');
+    if (savedGame) {
+        const parsed = JSON.parse(savedGame);
         
-        const tierTitle = document.createElement('div');
-        tierTitle.className = 'upgrade-tier-title';
-        tierTitle.textContent = 
-            tier === 'common' ? 'Базовые улучшения' : 
-            tier === 'rare' ? 'Продвинутые улучшения' : 'Эпические улучшения';
-        upgradesEl.appendChild(tierTitle);
-        
-        upgrades.forEach(upgrade => {
-            let canAfford = false;
-            if (upgrade.currency === "views") canAfford = game.views >= upgrade.price;
-            else if (upgrade.currency === "subscribers") canAfford = game.subscribers >= upgrade.price;
-            else if (upgrade.currency === "prestige") canAfford = game.prestige >= upgrade.price;
-            
-            const upgradeEl = document.createElement('div');
-            upgradeEl.className = `upgrade upgrade-${upgrade.tier}`;
-            
-            upgradeEl.innerHTML = `
-                <div class="upgrade-icon">
-                    <i class="${upgrade.icon}"></i>
-                </div>
-                <div class="upgrade-info">
-                    <div class="upgrade-name">${upgrade.name} (${upgrade.owned})</div>
-                    <div class="upgrade-desc">${upgrade.description}</div>
-                    ${upgrade.requiredUpgrades ? `<div class="upgrade-reqs">Требуется: ${upgrade.requiredUpgrades.map(id => game.upgrades.find(u => u.id === id).name).join(', ')}</div>` : ''}
-                </div>
-                <div class="upgrade-price">
-                    ${formatNumber(upgrade.price)} 
-                    <i class="fas fa-${upgrade.currency === "views" ? "eye" : upgrade.currency === "subscribers" ? "users" : "crown"}"></i>
-                </div>
-                <button class="upgrade-btn" ${canAfford ? '' : 'disabled'}
-                    onclick="buyUpgrade(${upgrade.id})">
-                    <i class="fas fa-shopping-cart"></i>
-                </button>
-            `;
-            
-            upgradesEl.appendChild(upgradeEl);
-        });
-    }
-}
-
-// Добавляем функцию престижа
-function prestige() {
-    if (game.prestigeUnlocked && game.subscribers >= 20000) {
-        const prestigeGain = Math.floor(Math.sqrt(game.subscribers / 10000));
-        game.prestige += prestigeGain;
-        
-        // Сброс игры, но сохранение престижа и некоторых улучшений
-        game.subscribers = 0;
-        game.views = 0;
-        game.clicks = 0;
-        game.subsProgress = 0;
-        game.startTime = Date.now();
-        
-        // Очищаем авто-улучшения
-        game.autoUpgrades.forEach(au => clearInterval(au.interval));
-        game.autoUpgrades = [];
-        
-        // Сброс некоторых улучшений (кроме эпических)
-        game.upgrades.forEach(upgrade => {
-            if (upgrade.tier !== 'epic') {
-                upgrade.owned = 0;
-                upgrade.price = upgrade.basePrice;
+        // Merge saved game with current game state
+        for (const key in parsed) {
+            if (game.hasOwnProperty(key)) {
+                game[key] = parsed[key];
             }
-        });
+        }
         
-        createNotification(`Перерождение! Получено ${prestigeGain} уровней престижа`, 'fas fa-flag');
-        updateUI();
-        renderUpgrades();
-    } else if (!game.prestigeUnlocked) {
-        createNotification(`Требуется улучшение "Собственный бренд"`, 'fas fa-lock');
-    } else {
-        createNotification(`Требуется 20,000 подписчиков для перерождения`, 'fas fa-users');
+        // Restore intervals for auto-upgrades
+        game.autoUpgrades = [];
+        if (game.upgrades.find(u => u.id === 3)?.owned) {
+            game.autoUpgrades.push({ id: 3 });
+        }
+        if (game.upgrades.find(u => u.id === 5)?.owned) {
+            game.autoUpgrades.push({ id: 5 });
+        }
+        if (game.upgrades.find(u => u.id === 8)?.owned) {
+            game.autoUpgrades.push({ id: 8 });
+        }
+        
+        createNotification('Игра загружена!', 'fas fa-check');
     }
 }
 
-// Добавляем кнопку престижа в HTML и обновляем стили
+// Initialize the game when DOM is loaded
+document.addEventListener('DOMContentLoaded', initGame);
