@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Медиа Карьера</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="/static/js/app.js"></script>
     <link rel="stylesheet" href="/static/css/style.css">
     <style>
         :root {
@@ -438,6 +437,12 @@
             background: rgba(255, 255, 255, 0.5);
         }
     </style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Медиа Карьера</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
@@ -448,9 +453,9 @@
         </div>
         
         <div class="tab-container">
-            <div class="tab active" onclick="switchTab('main')">Главная</div>
-            <div class="tab" onclick="switchTab('upgrades')">Улучшения</div>
-            <div class="tab" onclick="switchTab('stats')">Статистика</div>
+            <div class="tab active" data-tab="main-tab">Главная</div>
+            <div class="tab" data-tab="upgrades-tab">Улучшения</div>
+            <div class="tab" data-tab="stats-tab">Статистика</div>
         </div>
         
         <div class="tab-content active" id="main-tab">
@@ -535,11 +540,8 @@
                 <i class="fas fa-arrow-up"></i> Престиж
             </button>
         </div>
-        <button class="prestige-btn" onclick="prestige()" id="prestige-btn">
-            <i class="fas fa-flag"></i> Перерождение
-        </button>
     </div>
     
-    <script src="app.js"></script>
+    <script src="/static/script.js"></script>
 </body>
 </html>
